@@ -1,23 +1,17 @@
-import logo from './logo.svg';
-import './App.css';
+import { useConfig } from './config';
+import { BrowserRouter } from 'react-router-dom'
+import './App.scss';
+import ConfiguredRoutes from './components/ConfiguredRoutes';
 
 function App() {
+  // 获取配置
+  const config = useConfig()
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <BrowserRouter>
+        <ConfiguredRoutes routes={config.routesList} />
+      </BrowserRouter>
     </div>
   );
 }
