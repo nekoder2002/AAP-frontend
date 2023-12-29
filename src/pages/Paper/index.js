@@ -1,13 +1,12 @@
 import './index.scss';
+import PdfHelper from '@/components/PdfHelper';
 
 /**
  * 单文档论文页
  */
-function Paper(){
+function Paper() {
     return (
-        <div>
-            paper
-        </div>
+        <PdfHelper pdf="https://arxiv.org/pdf/2303.18223.pdf" width="700px"></PdfHelper>
     );
 }
 
