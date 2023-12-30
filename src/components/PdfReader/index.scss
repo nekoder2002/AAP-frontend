@@ -1,0 +1,61 @@
+//页间距
+$page_space: 12;
+//文档应用栏高度
+$bar_height: 50;
+//文档轮廓
+$reader_border_width: 2;
+//输入框长度
+$input_width: 130;
+
+//总体样式
+.PdfReader {
+    border-style: solid;
+    border-width: $reader_border_width + px;
+    border-color: var(--semi-color-primary);
+}
+
+// 文档展示区样式
+.DocumentShow {
+    background-color: aliceblue;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+// 文档页样式
+.Paper {
+    margin-top: $page_space + px;
+    box-shadow: 4px 4px 2px #e6e6e6;
+}
+
+// 文档应用栏样式
+.DocumentBar {
+    height: $bar_height + px;
+}
+
+// 页数步进器样式
+.PageSkip {
+    width: $input_width + px;
+}
+
+// 尾部填充
+.EndFill {
+    height: $page_space + px;
+}
+
+// 进度条样式
+.DocumentProgress {
+    margin-top: -4px;
+    margin-bottom: 0;
+}
+
+// 缩放选择栏样式 
+.PageFit {
+    width: $input_width + px;
+}
+
+:export {
+    barHeight: $bar_height;
+    readerBorderWidth: $reader_border_width;
+    pageSpace: $page_space;
+}
