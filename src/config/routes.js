@@ -1,5 +1,6 @@
 import Home from '@/pages/Home';
 import Paper from '@/pages/Paper';
+import Sign from '@/pages/Sign';
 
 /**
  * 路由配置
@@ -14,6 +15,11 @@ const routes = [
     {
         path: 'paper',
         element: <Paper />
+    },
+    //登陆/注册 页面
+    {
+        path: 'sign',
+        element: <Sign />
     }
 ];
 
