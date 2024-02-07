@@ -5,8 +5,9 @@ import UserStore from "@/store/user.Store"
 class RootStore {
     //组合模块
     constructor() {
-        this.loginStore = new LoginStore()
-        this.userStore = new UserStore()
+        this.loginStore = new LoginStore();
+        this.userStore = new UserStore();
+        
     }
 }
 

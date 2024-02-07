@@ -3,15 +3,16 @@ import { makeAutoObservable, runInAction } from "mobx"
 
 class UserStore {
     constructor() {
-        this.userInfo = {}
+        this.user = {}
         makeAutoObservable(this)
     }
 
-    async getUserInfo() {
-        const res = await http.get('/user/profile')
+    // 获取个人基本信息
+    async getMe() {
+        const res = await http.get('/user/me');
         runInAction(()=>{
-            this.userInfo = res.data.data
-        })
+            this.user = res.data.user;
+        });
     }
 }
 

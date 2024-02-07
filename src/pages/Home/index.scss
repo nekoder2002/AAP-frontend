@@ -1,0 +1,42 @@
+// 区域宽度
+$area_width: 800;
+// 区域高度
+$area_height: 500;
+//选择框宽度
+$select_width: 200;
+// 基础间隔
+$base_space: 80;
+
+
+// 提问区域
+.QuestionArea {
+    width: $area_width + px;
+    height: $area_height + px;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.Text {
+    text-align: center;
+    font-size: 50px;
+    margin-bottom: $base_space + px;
+}
+
+.Select {
+    width: $select_width + px;
+}
+
+.Search {
+    width: $area_width - $select_width + px;
+}
+
+.SearchButton{
+    display: block;
+    margin: $base_space + px auto;
+    width: 150px;
+    margin-top: 50px;
+}

@@ -3,7 +3,7 @@ import { getToken, removeToken } from "./token"
 import { history } from "./history"
 
 const http = axios.create({
-    baseURL: 'http://geek.itheima.net/v1_0',
+    baseURL: 'http://localhost:8080',
     timeout: 5000
 })
 
@@ -11,22 +11,30 @@ const http = axios.create({
 http.interceptors.request.use((config) => {
     const token = getToken()
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+        config.headers.Authorization = token;
     }
-    return config
+    return config;
 }, (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
 })
 
 //添加响应拦截器
 http.interceptors.response.use((response) => {
-    return response
-}, (error) => {
-    if (error.response.status === 401) {
-        removeToken()
-        history.push('/login')
+    if (response.data.code % 10 === 0) {
+        if (response.data.code === 20000) {
+            removeToken()
+            history.push('/login')
+            return Promise.reject('登陆过期，请重新登录');
+        } else if (response.data.code === 10000) {
+            return Promise.reject(response.data.message);
+        }
+        return Promise.reject(response.data);
+    } else {
+        return response.data;
     }
-    return Promise.reject(error)
+}, (error) => {
+    console.log(error);
+    return Promise.reject('与服务器连接异常，请稍后重试');
 })
 
 export { http }

@@ -9,10 +9,10 @@ class LoginStore {
     }
 
     //登录
-    login = async (phone, code) => {
-        const res = await http.post('http://geek.itheima.net/v1_0/authorizations', { mobile: phone, code: code });
-        runInAction(()=>{
-            this.token = res.data.data.token;
+    login = async (email, password) => {
+        const res = await http.get(`/user/login?email=${email}&password=${password}`);
+        runInAction(() => {
+            this.token = res.data.user.token;
         });
         //存入local_storage
         setToken(this.token);

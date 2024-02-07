@@ -1,7 +1,8 @@
 import { useConfig } from './config';
-import { BrowserRouter } from 'react-router-dom'
+import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom'
 import './App.scss';
 import ConfiguredRoutes from './components/ConfiguredRoutes';
+import { history } from './utils';
 
 function App() {
   // 获取配置
@@ -9,9 +10,9 @@ function App() {
 
   return (
     <div className="App">
-      <BrowserRouter>
+      <HistoryRouter history={history}>
         <ConfiguredRoutes routes={config.routesList} />
-      </BrowserRouter>
+      </HistoryRouter>
     </div>
   );
 }

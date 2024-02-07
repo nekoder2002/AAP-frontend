@@ -1,6 +1,11 @@
+import Layout from '@/pages/Layout';
 import Home from '@/pages/Home';
 import Paper from '@/pages/Paper';
-import Sign from '@/pages/Sign';
+import Login from '@/pages/Login';
+import AuthRoute from '@/components/AuthRoute';
+import KnowledgeBase from '@/pages/KnowledgeBase';
+import KbChat from '@/pages/KbChat';
+import NotFound from '@/pages/NotFound';
 
 /**
  * 路由配置
@@ -9,17 +14,36 @@ const routes = [
     // 主页面
     {
         path: '/',
-        element: <Home />
-    },
-    // 单文档论文页
-    {
-        path: 'paper',
-        element: <Paper />
+        element: <AuthRoute><Layout /></AuthRoute>,
+        children: [
+            {
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: 'kb',
+                element: <KnowledgeBase />
+            },
+            // 知识库对话页面
+            {
+                path: 'kbchat',
+                element: <KbChat />
+            },
+            // 单文档论文页
+            {
+                path: 'paper',
+                element: <Paper />
+            },
+            {
+                path: '*',
+                element: <NotFound />
+            }
+        ]
     },
     //登陆/注册 页面
     {
-        path: 'sign',
-        element: <Sign />
+        path: 'login',
+        element: <Login />
     }
 ];
 
