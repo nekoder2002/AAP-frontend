@@ -112,7 +112,7 @@ function KbChat() {
             <Tabs type="button">
                 <TabPane tab="对话" itemKey="1">
                     <div>
-                        <Chat height={1200}></Chat>
+                        <Chat height={winHeight - 106}></Chat>
                     </div>
                 </TabPane>
                 <TabPane tab="论文管理" itemKey="2">

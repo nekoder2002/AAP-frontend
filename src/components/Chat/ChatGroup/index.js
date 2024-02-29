@@ -1,8 +1,12 @@
 import { Card, Avatar, List, Button, Divider } from "@douyinfe/semi-ui";
 import "./index.scss";
 import { formatDate } from "@/utils";
+import TypeWriter from "@/components/TypeWriter";
+import { useState } from "react";
 
-function ChatGroup({ chatRecord, userName, robotName, mode }) {
+function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
+    const [finish, setFinish] = useState(false);
+
     return (
         <div>
             <Divider margin='12px' align='center'>
@@ -26,9 +30,10 @@ function ChatGroup({ chatRecord, userName, robotName, mode }) {
                 </Card>
             </div>
             <div className="RepeatContent">
-                <Card style={{ width: '50%' }} footer={
+                <Card style={{ width: '50%' }} loading={isNew} footer={
                     <List
-                        dataSource={chatRecord.docs}
+                        emptyContent="加载中"
+                        dataSource={(isNew && finish) || chatRecord.docs}
                         renderItem={item => (
                             <List.Item
                                 header={<Avatar color="blue">SE</Avatar>}
@@ -57,9 +62,11 @@ function ChatGroup({ chatRecord, userName, robotName, mode }) {
                             />
                         }
                     />
-                    <p style={{ fontSize: 15 }}>
-                        {chatRecord.answer}
-                    </p>
+                    {isNew ? (
+                        <p style={{ fontSize: 15 }}>
+                            <TypeWriter typingSpeed={20} onFinish={() => setFinish(true)}>{chatRecord.answer}</TypeWriter>
+                        </p>
+                    ) : chatRecord.answer}
                 </Card>
             </div>
         </div>

@@ -86,7 +86,7 @@ function Layout() {
                                     itemKey: '/kb',
                                     onClick: () => { navigate('/kb') }
                                 },
-                                { itemKey: 'union', text: '个人信息', icon: <IconUserCircle /> }
+                                { itemKey: 'union', text: '用户信息', icon: <IconUserCircle /> }
                             ]}
                             onSelect={key => console.log(key)}
                         />

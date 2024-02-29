@@ -1,9 +1,12 @@
 import './index.scss';
-import { useState, useMemo, useEffect } from 'react';
-import { Table, Avatar, Button, Space,Empty } from '@douyinfe/semi-ui';
+import cssConfig from "./index.scss";
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Table, Avatar, Button, Space, Empty, Form, Modal,Toast } from '@douyinfe/semi-ui';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import * as dateFns from 'date-fns';
+import { useStore } from '@/store';
+import { http } from '@/utils';
 
 const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
 const columns = [
@@ -59,9 +62,17 @@ const DAY = 24 * 60 * 60 * 1000;
  * 个人知识库页面
  */
 function KnowledgeBase() {
+    //获取个人信息
+    const { userStore } = useStore();
+    //表格数据
     const [dataSource, setData] = useState([]);
-
+    //表格加载状态
     const [loading, setLoading] = useState(true);
+    //注册弹窗可视
+    const [visible, setVisible] = useState(false);
+
+    //表单api
+    const kbFormApi = useRef();
 
     const rowSelection = useMemo(
         () => ({
@@ -83,6 +94,32 @@ function KnowledgeBase() {
         }),
         []
     );
+
+    //弹窗相关
+    const showDialog = () => {
+        setVisible(true);
+    };
+    const handleCancel = () => {
+        setVisible(false);
+        console.log('Cancel button clicked');
+    };
+
+    //添加数据
+    const addData = () => {
+        kbFormApi.current.validate().then((res) => {
+            http.put('/kb/insert', { ...res, belongsToTeam: false, builderId: userStore.user.id }).then((res) => {
+                Toast.success({ content: "添加知识库成功", showClose: false });
+                kbFormApi.current.reset();
+                setVisible(false);
+            }).catch(e => {
+                if (e?.code === 20010) {
+                    Toast.error({ content: '添加知识库失败', showClose: false });
+                } else {
+                    Toast.error({ content: e, showClose: false });
+                }
+            })
+        })
+    }
 
     const getData = () => {
         const data = [];
@@ -108,20 +145,53 @@ function KnowledgeBase() {
 
     return (
         <div >
+            {/* 编辑对话框 */}
+            <Modal
+                title="添加知识库"
+                centered
+                maskClosable={false}
+                visible={visible}
+                footer={
+                    <Space spacing={parseInt(cssConfig.buttonSpace)}>
+                        <Button className='KbButton' onClick={addData} theme='solid' type='primary' size='large'>
+                            添加
+                        </Button>
+                        <Button className='KbButton' onClick={handleCancel} size='large'>取消</Button>
+                    </Space>
+                }
+                onCancel={handleCancel}
+                closeOnEsc
+            >
+                <Form className='KbForm' getFormApi={formApi => kbFormApi.current = formApi}>
+                    <Form.Input
+                        rules={[
+                            { required: true, message: '不能为空' },
+                            { min: 3, max: 20, message: '知识库名称需要3-20个字符' }
+                        ]}
+                        trigger='blur'
+                        className='KbInput' field='name' label='名称' />
+                    <Form.TextArea maxCount={100} className='kbInput' field='information' label='备注'
+                        rules={[
+                            { required: true, message: '不能为空' }
+                        ]}
+                        trigger='blur'
+                    />
+                </Form>
+            </Modal>
             <div className='KbTable'>
                 <Space className='ButtonArea'>
-                    <Button type="primary" theme='solid'>添加</Button>
+                    <Button type="primary" theme='solid' onClick={showDialog}>添加</Button>
                     <Button type="danger" theme='solid'>批量删除</Button>
                 </Space>
-                <Table className='ShowTable' loading={loading} 
+                <Table className='ShowTable' loading={loading}
                     empty={
                         <Empty
-                        image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
-                        darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
-                        description={'暂无内容，请添加'}
-                    />
+                            image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
+                            darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
+                            description={'暂无内容，请添加'}
+                        />
                     }
-                columns={columns} dataSource={[]} rowSelection={rowSelection} pagination={pagination} />
+                    columns={columns} dataSource={[]} rowSelection={rowSelection} pagination={pagination} />
             </div>
         </div>
     );

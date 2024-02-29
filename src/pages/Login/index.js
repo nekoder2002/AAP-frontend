@@ -25,16 +25,9 @@ function Login() {
     const showDialog = () => {
         setVisible(true);
     };
-    const handleOk = () => {
-        setVisible(false);
-        console.log('Ok button clicked');
-    };
     const handleCancel = () => {
         setVisible(false);
         console.log('Cancel button clicked');
-    };
-    const handleAfterClose = () => {
-        console.log('After Close callback executed');
     };
 
     //登录
@@ -92,8 +85,6 @@ function Login() {
                 centered
                 maskClosable={false}
                 visible={visible}
-                onOk={handleOk}
-                afterClose={handleAfterClose}
                 footer={
                     <Space spacing={parseInt(cssConfig.buttonSpace)}>
                         <Button className='SignButton' onClick={() => submitRegisterForm()} theme='solid' type='primary' size='large'>
