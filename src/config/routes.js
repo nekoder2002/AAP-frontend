@@ -31,7 +31,7 @@ const routes = [
             },
             // 单文档论文页
             {
-                path: 'paper',
+                path: 'paper/:id',
                 element: <Paper />
             },
             {

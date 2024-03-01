@@ -1,86 +1,45 @@
 import './index.scss';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '@/store';
-import { Table, Avatar, Button, Space, Tabs, TabPane, Empty, Form, Modal, Toast, Card } from '@douyinfe/semi-ui';
-import Text from '@douyinfe/semi-ui/lib/es/typography/text';
-import * as dateFns from 'date-fns';
+import { Table, Avatar, Button, Space, Tabs, Popconfirm, TabPane, Empty, Form, Modal, Toast, Card, Input, Popover, Typography } from '@douyinfe/semi-ui';
+import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
+import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import { useWindowSize } from '@/hooks';
-import { http } from '@/utils';
+import * as dateFns from 'date-fns';
+import { getToken, http, isAuth, removeToken } from '@/utils';
 import cssConfig from "./index.scss";
 import Chat from '@/components/Chat';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 
 const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
-const columns = [
-    {
-        title: '标题',
-        dataIndex: 'name',
-        render: (text, record, index) => {
-            return (
-                <div>
-                    <Avatar size="small" shape="square" src={figmaIconUrl} style={{ marginRight: 12 }}></Avatar>
-                    {text}
-                </div>
-            );
-        },
-        // filters: [
-        //     {
-        //         text: 'Semi Design 设计稿',
-        //         value: 'Semi Design 设计稿',
-        //     },
-        //     {
-        //         text: 'Semi D2C 设计稿',
-        //         value: 'Semi D2C 设计稿',
-        //     },
-        // ],
-        // onFilter: (value, record) => record.name.includes(value),
-    },
-    {
-        title: '更新日期',
-        dataIndex: 'updateTime',
-        sorter: (a, b) => (a.updateTime - b.updateTime > 0 ? 1 : -1),
-        render: value => {
-            return dateFns.format(new Date(value), 'yyyy-MM-dd');
-        },
-    },
-    {
-        title: '操作',
-        dataIndex: 'op',
-        render: (text, record, index) => {
-            return (
-                <Space>
-                    <Button type="primary" theme='solid'>对话</Button>
-                    <Button type="primary">下载</Button>
-                    <Button type="danger" theme='solid'>删除</Button>
-                </Space>
-            );
-        },
-    },
-];
-
-const DAY = 24 * 60 * 60 * 1000;
-
 /**
  * 对话知识库页面
  */
 function KbChat() {
+    const { Text } = Typography;
     //跳转实例对象
     const navigate = useNavigate();
     //获取个人信息
-    const { userStore } = useStore();
+    const { loginStore } = useStore();
+    //获取路径参数
+    const params = useParams();
     //表格数据
     const [dataSource, setData] = useState([]);
     //表格加载状态
     const [loading, setLoading] = useState(true);
     //注册弹窗可视
     const [visible, setVisible] = useState(false);
-    //知识库
-    const [kb, setKb] = useState(null);
+    //文件列表
+    const [files, setFiles] = useState([]);
+    //上传ref
+    const uploadRef = useRef();
     //表单api
-    const kbFormApi = useRef();
+    const paperFormApi = useRef();
     //总共页数
     const [total, setTotal] = useState(0);
+    //选择的表单
+    const [delIds, setDelIds] = useState([]);
 
     //处理页面变化
     const handlePageChange = page => {
@@ -92,21 +51,14 @@ function KbChat() {
     //分页数据
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 20,
+        pageSize: 10,
         onPageChange: handlePageChange,
     })
 
     //弹窗相关
-    const showDialog = (kb) => {
-        setKb(kb);
+    const showDialog = () => {
         setVisible(true);
     };
-    useEffect(() => {
-        if (visible === true) {
-            kbFormApi.current.setValue('information', kb?.information);
-            kbFormApi.current.setValue('name', kb?.name);
-        }
-    }, [visible])
     const handleCancel = () => {
         setVisible(false);
     };
@@ -114,7 +66,7 @@ function KbChat() {
     // 设置表格列
     const columns = [
         {
-            title: '知识库名称',
+            title: '论文名称',
             dataIndex: 'name',
             render: (text, record, index) => {
                 return (
@@ -124,25 +76,6 @@ function KbChat() {
                     </div>
                 );
             },
-        },
-        {
-            title: '备注',
-            dataIndex: 'information',
-            render: (text, record, index) => {
-                return (
-                    <Text
-                        ellipsis={{
-                            showTooltip: {
-                                opts: { content: text }
-                            },
-                            pos: 'middle'
-                        }}
-                        style={{ width: 150, wordBreak: 'break-word' }}
-                    >
-                        {text}
-                    </Text>
-                );
-            }
         },
         {
             title: '创建日期',
@@ -158,9 +91,16 @@ function KbChat() {
             render: (text, record, index) => {
                 return (
                     <Space>
-                        <Button type="primary" theme='solid' onClick={() => navigate(`/kbChat/${record.id}`)}>检索</Button>
-                        <Button type="primary" onClick={() => showDialog(record)}>编辑</Button>
-                        <Button type="danger" theme='solid'>删除</Button>
+                        <Button type="primary" theme='solid' onClick={() => navigate(`/paper/${record.id}`)}>查看</Button>
+                        <Button type="primary" onClick={() => showDialog(record)}>下载</Button>
+                        <Popconfirm
+                            okType='danger'
+                            title="确定是否删除"
+                            content="此修改将不可逆"
+                            onConfirm={() => deleteData(record.id)}
+                        >
+                            <Button type="danger" theme='solid'>删除</Button>
+                        </Popconfirm>
                     </Space>
                 );
             },
@@ -169,53 +109,58 @@ function KbChat() {
 
     //添加数据
     const addData = () => {
-        kbFormApi.current.validate().then((res) => {
-            http.put('/kb/insert', { ...res, belongsToTeam: false, builderId: userStore.user.id }).then((res) => {
-                Toast.success({ content: "添加知识库成功", showClose: false });
-                setVisible(false);
-                setPagination({
-                    currentPage: 1
-                })
-            }).catch(e => {
-                console.log(e);
-                if (e?.code === 20010) {
-                    Toast.error({ content: "添加知识库失败", showClose: false });
-                } else {
-                    Toast.error({ content: e, showClose: false });
-                }
-            })
+        paperFormApi.current.validate().then((res) => {
+            uploadRef.current.upload();
         }).catch(e => {
         });
     }
 
-    //更新数据
-    const updateData = (id) => {
-        kbFormApi.current.validate().then((res) => {
-            http.post('/kb/update', { id: id, name: res.name, information: res.information }).then((res) => {
-                Toast.success({ content: "更新知识库成功", showClose: false });
-                setVisible(false);
-                getData(pagination.currentPage, pagination.pageSize);
-            }).catch(e => {
-                console.log(e);
-                if (e?.code === 20020) {
-                    Toast.error({ content: "更新知识库失败", showClose: false });
-                } else {
-                    Toast.error({ content: e, showClose: false });
-                }
-            })
-        }).catch(e => {
-        });
+    //上传成功回调,处理异常
+    const afterUpload = (e) => {
+        console.log(e)
+        if (e?.response.code === 20011) {
+            Toast.success({ content: "上传成功", showClose: false });
+            return {
+                autoRemove: true,
+                status: 'success',
+                validateMessage: '上传成功'
+            };
+
+        } else if (e?.response.code === 20010) {
+            Toast.error({ content: "上传失败", showClose: false });
+            return {
+                autoRemove: false,
+                status: 'uploadFail',
+                validateMessage: '上传失败'
+            };
+        } else if (e?.response.code === 20000) {
+            Toast.error({ content: '登陆过期，请重新登录', showClose: false });
+            removeToken();
+            navigate('/login');
+        } else {
+            Toast.error({ content: e.message, showClose: false });
+            return {
+                autoRemove: false,
+                status: 'uploadFail',
+                validateMessage: '上传失败',
+            };
+        }
     }
+
 
     //删除数据
     const deleteData = (id) => {
-        http.delete(`/kb/delete?kb_id=${id}`).then((res) => {
-            Toast.success({ content: "删除知识库成功", showClose: false });
-            getData(pagination.currentPage, pagination.pageSize);
+        http.delete(`/paper/delete?paper_id=${id}`).then((res) => {
+            Toast.success({ content: "删除论文成功", showClose: false });
+            setDelIds(delIds.filter(e => e != id))
+            if (dataSource.length === 1 && pagination.currentPage > 1) {
+                getData(pagination.currentPage - 1, pagination.pageSize);
+            } else {
+                getData(pagination.currentPage, pagination.pageSize);
+            }
         }).catch(e => {
-            console.log(e);
             if (e?.code === 20030) {
-                Toast.error({ content: "删除知识库失败", showClose: false });
+                Toast.error({ content: "删除论文失败", showClose: false });
             } else {
                 Toast.error({ content: e, showClose: false });
             }
@@ -224,13 +169,21 @@ function KbChat() {
 
     //批量删除数据
     const deleteMultData = (ids) => {
-        http.delete('/kb/multdel', { kbIds: ids }).then((res) => {
-            Toast.success({ content: "删除知识库成功", showClose: false });
-            getData(pagination.currentPage, pagination.pageSize);
+        http.request({
+            url: `/paper/multdel?kb_id=${params.id}`,
+            method: 'delete',
+            data: ids
+        }).then((res) => {
+            Toast.success({ content: "删除论文成功", showClose: false });
+            if (dataSource.length - ids.length === 0 && pagination.currentPage > 1) {
+                getData(pagination.currentPage - 1, pagination.pageSize);
+            } else {
+                getData(pagination.currentPage, pagination.pageSize);
+            }
         }).catch(e => {
             console.log(e);
             if (e?.code === 20030) {
-                Toast.error({ content: "删除知识库失败", showClose: false });
+                Toast.error({ content: "删除论文失败", showClose: false });
             } else {
                 Toast.error({ content: e, showClose: false });
             }
@@ -240,12 +193,12 @@ function KbChat() {
     //获取数据
     const getData = (current, size) => {
         setLoading(true);
-        http.get(`/kb/query?current=${current}&size=${size}`).then((res) => {
-            setData(res.data.kbs.records);
-            setTotal(res.data.kbs.total);
+        http.get(`/paper/query?current=${current}&size=${size}&kb_id=${params.id}`).then((res) => {
+            setData(res.data.papers.records);
+            setTotal(res.data.papers.total);
         }).catch(e => {
             if (e?.code === 20040) {
-                Toast.error({ content: '获取知识库失败', showClose: false });
+                Toast.error({ content: '获取论文失败', showClose: false });
             } else {
                 Toast.error({ content: e, showClose: false });
             }
@@ -254,15 +207,108 @@ function KbChat() {
         })
     };
 
+    //选择
+    const rowSelection = {
+        selectedRowKeys: delIds,
+        onChange: (selectedRowKeys, selectedRows) => {
+            setDelIds(selectedRowKeys);
+        },
+    };
+
+    //分页更新时更新
     useEffect(() => {
         getData(pagination.currentPage, pagination.pageSize);
     }, [pagination]);
 
-    const [x, setx] = useState(300);
     //获取当前窗口高度
     const [winWidth, winHeight] = useWindowSize();
+
+    //表单受控
+    const onFileChange = ({ fileList, currentFile, event }) => {
+        if (fileList.length !== files.length) {
+            let newFileList = [...fileList]; // spread to get new array
+            setFiles(newFileList);
+        }
+    };
+
+    //自定义文件列表操作格式
+    const renderFileOperation = (fileItem) => (
+        <>
+            <Text style={{ marginLeft: 20, width: 300 }} ellipsis={{
+                showTooltip: {
+                    opts: { content: files[fileItem.index].name.slice(0, files[fileItem.index].name.indexOf('.')), pos: 'middle' }
+                }
+            }}>{'备注：' + files[fileItem.index].name.slice(0, files[fileItem.index].name.indexOf('.'))}</Text>
+            <Popover content={({ initialFocusRef }) => {
+                return (
+                    <Space>
+                        <Input ref={initialFocusRef} placeholder={fileItem.name.slice(0, fileItem.name.indexOf('.'))} />
+                        <Button onClick={() => {
+                            //更新文件数组
+                            const file = { ...fileItem, name: initialFocusRef.current.value === '' ? fileItem.name : (initialFocusRef.current.value + '.pdf') };
+                            const newFileArray = [...files.filter(e => e.fileInstance.uid != fileItem.fileInstance.uid)];
+                            newFileArray.splice(file.index, file.index, file);
+                            setFiles(newFileArray);
+                        }}>确认</Button>
+                    </Space>
+                );
+            }} trigger="click">
+                <Button>备注名</Button>
+            </Popover></>
+    );
+
     return (
         <div >
+            <Modal
+                title="上传论文"
+                size='medium'
+                centered
+                maskClosable={false}
+                visible={visible}
+                footer={
+                    <Space spacing={parseInt(cssConfig.buttonSpace)}>
+                        <Button className='PaperButton' onClick={addData} theme='solid' type='primary' size='large'>
+                            上传
+                        </Button>
+                        <Button className='PaperButton' onClick={handleCancel} size='large'>取消</Button>
+                    </Space>
+                }
+                onCancel={handleCancel}
+                closeOnEsc
+            >
+                <Form className='PaperForm' getFormApi={formApi => paperFormApi.current = formApi}>
+                    <Form.Upload
+                        multiple
+                        action={http.baseURL + '/paper/insert'}
+                        name='file'
+                        data={{
+                            kbId: params.id
+                        }}
+                        headers={{
+                            'Authorization': loginStore.token
+                        }}
+                        ref={uploadRef}
+                        field='files'
+                        label='拖拽上传'
+                        itemStyle={{ width: '100%' }}
+                        rules={[
+                            { required: true, message: '不能为空' }
+                        ]}
+                        fileList={files}
+                        limit={6}
+                        accept=".pdf"
+                        uploadTrigger="custom"
+                        showClear
+                        draggable={true}
+                        dragMainText={'点击上传论文或拖拽论文到这里'}
+                        dragSubText="仅支持PDF文件"
+                        onAcceptInvalid={() => Toast.error({ content: "上传类型错误", showClose: false })}
+                        renderFileOperation={renderFileOperation}
+                        afterUpload={afterUpload}
+                        onChange={onFileChange}
+                    />
+                </Form>
+            </Modal>
             <Tabs type="button">
                 <TabPane tab="对话" itemKey="1">
                     <div>
@@ -270,12 +316,28 @@ function KbChat() {
                     </div>
                 </TabPane>
                 <TabPane tab="论文管理" itemKey="2">
-                    <div className='KbTable'>
+                    <div className='PaperTable'>
                         <Space className='ButtonArea'>
-                            <Button type="primary">上传</Button>
-                            <Button type="danger" theme='solid'>批量删除</Button>
+                            <Button type="primary" onClick={showDialog}>上传</Button>
+                            <Popconfirm
+                                okType='danger'
+                                title="确定是否删除"
+                                content="此修改将不可逆"
+                                disabled={delIds.length === 0}
+                                onConfirm={() => deleteMultData(delIds)}
+                            >
+                                <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
+                            </Popconfirm>
                         </Space>
-                        <Table columns={columns} dataSource={dataSource} pagination={pagination} />
+                        <Table className='ShowTable' loading={loading} columns={columns} rowKey="id"
+                            empty={
+                                <Empty
+                                    image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
+                                    darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
+                                    description={'暂无内容，请添加'}
+                                />
+                            }
+                            dataSource={dataSource} pagination={{ ...pagination, total: total }} rowSelection={rowSelection} />
                     </div>
                 </TabPane>
             </Tabs>

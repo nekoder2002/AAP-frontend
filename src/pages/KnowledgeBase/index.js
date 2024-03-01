@@ -104,7 +104,6 @@ function KnowledgeBase() {
         {
             title: '创建日期',
             dataIndex: 'buildTime',
-            // sorter: (a, b) => (a.updateTime - b.updateTime > 0 ? 1 : -1),
             render: value => {
                 return dateFns.format(new Date(value), 'yyyy-MM-dd');
             },
@@ -143,7 +142,7 @@ function KnowledgeBase() {
                     currentPage: 1
                 })
             }).catch(e => {
-                console.log(e);
+
                 if (e?.code === 20010) {
                     Toast.error({ content: "添加知识库失败", showClose: false });
                 } else {
@@ -285,6 +284,7 @@ function KnowledgeBase() {
                 <Space className='ButtonArea'>
                     <Button type="primary" theme='solid' onClick={() => showDialog(null)}>添加</Button>
                     <Popconfirm
+                        disabled={delIds.length === 0}
                         okType='danger'
                         title="确定是否删除"
                         content="此修改将不可逆"
@@ -293,7 +293,7 @@ function KnowledgeBase() {
                         <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
                     </Popconfirm>
                 </Space>
-                <Table className='ShowTable' loading={loading} rowKey='id'
+                <Table className='ShowTable' loading={loading} rowKey="id"
                     empty={
                         <Empty
                             image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}

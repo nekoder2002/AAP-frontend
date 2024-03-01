@@ -37,4 +37,6 @@ http.interceptors.response.use((response) => {
     return Promise.reject('与服务器连接异常，请稍后重试');
 })
 
+http.baseURL = 'http://localhost:8080';
+
 export { http }
