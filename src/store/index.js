@@ -7,7 +7,6 @@ class RootStore {
     constructor() {
         this.loginStore = new LoginStore();
         this.userStore = new UserStore();
-        
     }
 }
 

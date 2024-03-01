@@ -13,7 +13,7 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
                 {formatDate(chatRecord.chatTime)}
             </Divider>
             <div className="ChatContent">
-                <Card style={{ backgroundColor: 'lightblue', width: '50%' }}>
+                <Card style={{ backgroundColor: 'lightblue', width: '80%' }}>
                     <Card.Meta
                         title={userName}
                         avatar={
@@ -30,7 +30,7 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
                 </Card>
             </div>
             <div className="RepeatContent">
-                <Card style={{ width: '50%' }} loading={isNew} footer={
+                <Card style={{ width: '80%' }} loading={isNew} footer={
                     <List
                         emptyContent="加载中"
                         dataSource={(isNew && finish) || chatRecord.docs}

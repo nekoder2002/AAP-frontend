@@ -16,4 +16,4 @@ class UserStore {
     }
 }
 
-export default UserStore
+export default UserStore;

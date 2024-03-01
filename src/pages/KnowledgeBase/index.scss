@@ -5,7 +5,7 @@ $base_width: 400;
 //按钮宽度
 $btn_width: 80;
 //按钮间距
-$btn_space: 50;
+$btn_space: 10;
 
 .ButtonArea {
     margin-left: 20px;
@@ -29,5 +29,9 @@ $btn_space: 50;
 // 按钮区
 .KbButton {
     width: $btn_width + px;
+}
 
+
+:export {
+    buttonSpace: $btn_space;
 }

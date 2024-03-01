@@ -26,7 +26,7 @@ const routes = [
             },
             // 知识库对话页面
             {
-                path: 'kbchat',
+                path: 'kbchat/:id',
                 element: <KbChat />
             },
             // 单文档论文页
