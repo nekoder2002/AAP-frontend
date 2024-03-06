@@ -3,6 +3,7 @@ import "./index.scss";
 import { formatDate } from "@/utils";
 import TypeWriter from "@/components/TypeWriter";
 import { useState } from "react";
+import { Title } from "@douyinfe/semi-ui/lib/es/skeleton/item";
 
 function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
     const [finish, setFinish] = useState(false);
@@ -10,7 +11,7 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
     return (
         <div>
             <Divider margin='12px' align='center'>
-                {formatDate(chatRecord.chatTime)}
+                {formatDate(new Date(chatRecord.chatTime))}
             </Divider>
             <div className="ChatContent">
                 <Card style={{ backgroundColor: 'lightblue', width: '80%' }}>
@@ -32,16 +33,18 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
             <div className="RepeatContent">
                 <Card style={{ width: '80%' }} loading={isNew} footer={
                     <List
-                        emptyContent="加载中"
+                        emptyContent={isNew ? '加载中' : '未检索到相关论文，此为大模型自身能力作答'}
                         dataSource={(isNew && finish) || chatRecord.docs}
                         renderItem={item => (
                             <List.Item
-                                header={<Avatar color="blue">SE</Avatar>}
+                                header={
+                                    <Avatar color="blue">{item.fileName.charAt(0)}</Avatar>
+                                }
                                 main={
                                     <div>
-                                        <span style={{ color: 'var(--semi-color-text-0)', fontWeight: 500 }}>{item.filename}</span>
+                                        <span style={{ color: 'var(--semi-color-text-0)', fontWeight: 900, fontSize: 15 }}>{item.fileName}</span><span style={{ float: "right", fontSize: 15 }}> score:{item.score}</span>
                                         <p>
-                                            {item.page_content}
+                                            {item.pageContent}
                                         </p>
                                     </div>
                                 }

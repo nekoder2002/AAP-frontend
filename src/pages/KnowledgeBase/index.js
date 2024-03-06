@@ -83,6 +83,17 @@ function KnowledgeBase() {
             },
         },
         {
+            title: '创建者',
+            dataIndex: 'builderName',
+            render: (text, record, index) => {
+                return (
+                    <>
+                        <Avatar size="small" color='light-blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}
+                    </>
+                );
+            }
+        },
+        {
             title: '备注',
             dataIndex: 'information',
             render: (text, record, index) => {

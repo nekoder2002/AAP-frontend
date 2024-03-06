@@ -6,6 +6,8 @@ import AuthRoute from '@/components/AuthRoute';
 import KnowledgeBase from '@/pages/KnowledgeBase';
 import KbChat from '@/pages/KbChat';
 import NotFound from '@/pages/NotFound';
+import Team from '@/pages/Team';
+import TeamInfo from '@/pages/TeamInfo';
 
 /**
  * 路由配置
@@ -33,6 +35,16 @@ const routes = [
             {
                 path: 'paper/:id',
                 element: <Paper />
+            },
+            // 团队页
+            {
+                path: 'team',
+                element: <Team />
+            },
+            //团队信息页
+            {
+                path: 'teaminfo/:id',
+                element: <TeamInfo />
             },
             {
                 path: '*',

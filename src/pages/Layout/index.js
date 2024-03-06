@@ -1,5 +1,5 @@
 import { Layout as SLayout, Nav, Avatar, Dropdown, Toast } from '@douyinfe/semi-ui';
-import { IconHome, IconInbox, IconUserCircle } from '@douyinfe/semi-icons';
+import { IconHome, IconInbox, IconUserCircle,IconUserGroup } from '@douyinfe/semi-icons';
 import logo from '@/assets/logo2.png';
 import './index.scss';
 import cssConfig from "./index.scss";
@@ -74,12 +74,12 @@ function Layout() {
                             style={{ height: winHeight - parseInt(cssConfig.topHeight), overflowY: 'auto' }}
                             items={[
                                 { itemKey: '/', text: '主页', icon: <IconHome />, onClick: () => { navigate('/') } },
-                                // {
-                                //     itemKey: 'team',
-                                //     icon: <IconUserGroup />,
-                                //     text: '团队',
-                                //     items: ['团队3', '团队2', '团队1']
-                                // },
+                                {
+                                    itemKey: '/team',
+                                    icon: <IconUserGroup />,
+                                    text: '团队',
+                                    onClick: () => { navigate('/team') }
+                                },
                                 {
                                     text: '个人知识库',
                                     icon: <IconInbox />,

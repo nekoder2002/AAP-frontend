@@ -6,11 +6,13 @@ import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, Ill
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import { useWindowSize } from '@/hooks';
 import * as dateFns from 'date-fns';
-import { getToken, http, isAuth, removeToken } from '@/utils';
+import { convertRes2Blob, getToken, http, isAuth, removeToken } from '@/utils';
 import cssConfig from "./index.scss";
 import Chat from '@/components/Chat';
 import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
+import axios from 'axios';
+import UserStore from '@/store/user.Store';
 
 const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
 /**
@@ -21,7 +23,7 @@ function KbChat() {
     //跳转实例对象
     const navigate = useNavigate();
     //获取个人信息
-    const { loginStore } = useStore();
+    const { loginStore, userStore } = useStore();
     //获取路径参数
     const params = useParams();
     //表格数据
@@ -51,7 +53,7 @@ function KbChat() {
     //分页数据
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 10,
+        pageSize: 8,
         onPageChange: handlePageChange,
     })
 
@@ -78,6 +80,17 @@ function KbChat() {
             },
         },
         {
+            title: '创建者',
+            dataIndex: 'builderName',
+            render: (text, record, index) => {
+                return (
+                    <>
+                        <Avatar size="small" color='light-blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}
+                    </>
+                );
+            }
+        },
+        {
             title: '创建日期',
             dataIndex: 'buildTime',
             // sorter: (a, b) => (a.updateTime - b.updateTime > 0 ? 1 : -1),
@@ -92,7 +105,7 @@ function KbChat() {
                 return (
                     <Space>
                         <Button type="primary" theme='solid' onClick={() => navigate(`/paper/${record.id}`)}>查看</Button>
-                        <Button type="primary" onClick={() => showDialog(record)}>下载</Button>
+                        <Button type="primary" onClick={() => download(record.id)}>下载</Button>
                         <Popconfirm
                             okType='danger'
                             title="确定是否删除"
@@ -115,11 +128,30 @@ function KbChat() {
         });
     }
 
+    //下载
+    const download = async (paperId) => {
+        const fileRes = await axios.request({
+            url: http.baseURL + `/paper/download?paper_id=${paperId}`,
+            method: 'get',
+            headers: {
+                'Authorization': loginStore.token,
+            },
+            responseType: 'blob'
+        }).catch(e => {
+            Toast.error({ content: '论文下载失败', showClose: false });
+        });
+        convertRes2Blob(fileRes);
+    }
+
     //上传成功回调,处理异常
     const afterUpload = (e) => {
         console.log(e)
         if (e?.response.code === 20011) {
             Toast.success({ content: "上传成功", showClose: false });
+            setPagination({
+                ...pagination,
+                currentPage: 1
+            })
             return {
                 autoRemove: true,
                 status: 'success',
@@ -312,7 +344,12 @@ function KbChat() {
             <Tabs type="button">
                 <TabPane tab="对话" itemKey="1">
                     <div>
-                        <Chat height={winHeight - 106}></Chat>
+                        <Chat
+                            objectId={params.id}
+                            chatterId={userStore.user.id}
+                            dataURL={`/chat/kb_list?kb_id=${params.id}`}
+                            chatURL='/chat/kb'
+                            height={winHeight - 106} userName={userStore.user.name}  robotName='知识库小助手'></Chat>
                     </div>
                 </TabPane>
                 <TabPane tab="论文管理" itemKey="2">
