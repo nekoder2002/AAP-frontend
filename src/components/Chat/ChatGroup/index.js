@@ -2,11 +2,17 @@ import { Card, Avatar, List, Button, Divider } from "@douyinfe/semi-ui";
 import "./index.scss";
 import { formatDate } from "@/utils";
 import TypeWriter from "@/components/TypeWriter";
-import { useState } from "react";
-import { Title } from "@douyinfe/semi-ui/lib/es/skeleton/item";
+import { useEffect, useState } from "react";
+import robotIcon from '@/assets/robot.png'
 
-function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
+function ChatGroup({ chatRecord, userName, robotName, onFinish, onButtonClick, mode }) {
     const [finish, setFinish] = useState(false);
+
+    useEffect(() => {
+        if (finish) {
+            onFinish();
+        }
+    }, [finish, onFinish])
 
     return (
         <div>
@@ -21,8 +27,7 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
                             <Avatar
                                 alt='userName'
                                 size="small"
-                                src='https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/card-meta-avatar-docs-demo.jpg'
-                            />
+                            >{userName?.charAt(0)}</Avatar>
                         }
                     />
                     <p style={{ fontSize: 15 }}>
@@ -31,28 +36,48 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
                 </Card>
             </div>
             <div className="RepeatContent">
-                <Card style={{ width: '80%' }} loading={isNew} footer={
+                <Card style={{ width: '80%' }} loading={chatRecord.id === -1} footer={
                     <List
-                        emptyContent={isNew ? '加载中' : '未检索到相关论文，此为大模型自身能力作答'}
-                        dataSource={(isNew && finish) || chatRecord.docs}
-                        renderItem={item => (
-                            <List.Item
-                                header={
-                                    <Avatar color="blue">{item.fileName.charAt(0)}</Avatar>
-                                }
-                                main={
-                                    <div>
-                                        <span style={{ color: 'var(--semi-color-text-0)', fontWeight: 900, fontSize: 15 }}>{item.fileName}</span><span style={{ float: "right", fontSize: 15 }}> score:{item.score}</span>
-                                        <p>
-                                            {item.pageContent}
-                                        </p>
-                                    </div>
-                                }
-                                extra={
-                                    <Button theme="borderless">查看</Button>
-                                }
-                            />
-                        )}
+                        emptyContent={chatRecord.id === -1 || (typeof (chatRecord.isNew) !== 'undefined' && !finish) ? '加载中' : '未检索到相关论文，此为大模型自身能力作答'}
+                        dataSource={typeof (chatRecord.isNew) === 'undefined' || finish ? chatRecord.docs : []}
+                        renderItem={item => {
+                            if (mode === 'kb') {
+                                return (
+                                    <List.Item key={item.id}
+                                        header={
+                                            <Avatar color="blue">{item.fileName.charAt(0)}</Avatar>
+                                        }
+                                        main={
+                                            <div>
+                                                <span style={{ color: 'var(--semi-color-text-0)', fontWeight: 900, fontSize: 15 }}>{item.fileName}</span><span style={{ float: "right", fontSize: 15 }}> score:{item.score}</span>
+                                                <p>
+                                                    {item.pageContent}
+                                                </p>
+                                            </div>
+                                        }
+                                        extra={
+                                            <Button theme="borderless" onClick={() => { onButtonClick(item) }}>查看</Button>
+                                        }
+                                    />
+                                )
+                            } else if (mode === 'paper') {
+                                return (
+                                    <List.Item
+                                        main={
+                                            <div>
+                                                <span style={{ color: 'var(--semi-color-text-0)', fontWeight: 900, fontSize: 15 }}>页数：{item.pageNum}&nbsp;&nbsp;索引：{item.text.split('@')[0]}</span>
+                                                <p>
+                                                    {item.text.split('@')[1]}
+                                                </p>
+                                            </div>
+                                        }
+                                        extra={
+                                            <Button theme="borderless" onClick={() => {  onButtonClick(item) }}>定位</Button>
+                                        }
+                                    />
+                                )
+                            }
+                        }}
                     />
                 }>
                     <Card.Meta
@@ -61,15 +86,15 @@ function ChatGroup({ chatRecord, userName, robotName, isNew, mode }) {
                             <Avatar
                                 alt='robotName'
                                 size="small"
-                                src='https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/card-meta-avatar-docs-demo.jpg'
+                                src={robotIcon}
                             />
                         }
                     />
-                    {isNew ? (
-                        <p style={{ fontSize: 15 }}>
-                            <TypeWriter typingSpeed={20} onFinish={() => setFinish(true)}>{chatRecord.answer}</TypeWriter>
-                        </p>
-                    ) : chatRecord.answer}
+                    {typeof (chatRecord.isNew) === 'undefined' ? chatRecord.answer : (
+
+                        <TypeWriter typingSpeed={10} onFinish={() => setFinish(true)}>{chatRecord.answer}</TypeWriter>
+
+                    )}
                 </Card>
             </div>
         </div>

@@ -1,10 +1,11 @@
-import { Layout as SLayout, Nav, Avatar, Dropdown, Toast } from '@douyinfe/semi-ui';
-import { IconHome, IconInbox, IconUserCircle,IconUserGroup } from '@douyinfe/semi-icons';
+import { Layout as SLayout, Nav, Avatar, Dropdown, Toast, Button } from '@douyinfe/semi-ui';
+import { IconHome, IconInbox, IconUserCircle, IconUserGroup } from '@douyinfe/semi-icons';
 import logo from '@/assets/logo2.png';
 import './index.scss';
 import cssConfig from "./index.scss";
 import { useWindowSize } from '@/hooks';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { IconSmallTriangleLeft } from "@douyinfe/semi-icons";
 import { useEffect, useState } from 'react';
 import { useStore } from '@/store';
 import { observer } from 'mobx-react-lite';
@@ -48,7 +49,10 @@ function Layout() {
                     className='TopMenu'
                     mode={'horizontal'}
                     header={{
-                        children: <img className='NavLogo' src={logo} alt="aap-logo" title="论文阅读工具" />,
+                        children: <>
+                            <Button onClick={()=>{window.history.back()}} icon={<IconSmallTriangleLeft />} />
+                            <img className='NavLogo' src={logo} alt="aap-logo" title="论文阅读工具" />
+                        </>
                     }}
                     footer={
                         <Dropdown
@@ -86,7 +90,7 @@ function Layout() {
                                     itemKey: '/kb',
                                     onClick: () => { navigate('/kb') }
                                 },
-                                { itemKey: 'union', text: '用户信息', icon: <IconUserCircle /> }
+                                { itemKey: `/user/${userStore.user.id}`, text: '用户信息', icon: <IconUserCircle />, onClick: () => { navigate(`/user/${userStore.user.id}`) } }
                             ]}
                             onSelect={key => console.log(key)}
                         />

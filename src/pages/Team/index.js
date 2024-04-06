@@ -1,7 +1,7 @@
 import './index.scss';
 import cssConfig from "./index.scss";
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Table, Avatar, Button, Space, Empty, Form, Modal, Toast, Card, Popconfirm, List, Descriptions, Rating, ButtonGroup, Switch, Pagination } from '@douyinfe/semi-ui';
+import { Table, Avatar, Button, Space, Empty, Form, Modal, Toast, Card, Popconfirm, List, Descriptions, Rating, ButtonGroup, Switch, Pagination, Tag } from '@douyinfe/semi-ui';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import * as dateFns from 'date-fns';
@@ -11,8 +11,8 @@ import { observer } from 'mobx-react-lite';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
 import { useNavigate } from 'react-router-dom';
+import teamIcon from '@/assets/team.png';
 
-const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
 // 一天的毫秒数
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -79,80 +79,6 @@ function Team() {
     const handleAddCancel = () => {
         setAddVisible(false);
     };
-
-    // 设置表格列
-    const columns = [
-        {
-            title: '知识库名称',
-            dataIndex: 'name',
-            render: (text, record, index) => {
-                return (
-                    <div>
-                        <Avatar size="small" shape="square" src={figmaIconUrl} style={{ marginRight: 12 }}></Avatar>
-                        {text}
-                    </div>
-                );
-            },
-        },
-        {
-            title: '创建者',
-            dataIndex: 'builderName',
-            render: (text, record, index) => {
-                return (
-                    <>
-                        <Avatar size="small" color='light-blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}
-                    </>
-                );
-            }
-        },
-        {
-            title: '备注',
-            dataIndex: 'information',
-            render: (text, record, index) => {
-                return (
-                    <Text
-                        ellipsis={{
-                            showTooltip: {
-                                opts: { content: text }
-                            },
-                            pos: 'middle'
-                        }}
-                        style={{ width: 150, wordBreak: 'break-word' }}
-                    >
-                        {text}
-                    </Text>
-                );
-            }
-        },
-        {
-            title: '创建日期',
-            dataIndex: 'buildTime',
-            render: value => {
-                return dateFns.format(new Date(value), 'yyyy-MM-dd');
-            },
-        },
-        {
-            title: '操作',
-            dataIndex: 'op',
-            render: (text, record, index) => {
-                return (
-                    <Space>
-                        <Button type="primary" theme='solid' onClick={() => navigate(`/kbChat/${record.id}`)}>检索</Button>
-                        <Button type="primary" onClick={() => showEditDialog(record)}>编辑</Button>
-
-                        <Popconfirm
-                            okType='danger'
-                            title="确定是否删除"
-                            content="此修改将不可逆"
-                            onConfirm={() => deleteData(record.id)}
-                        >
-                            <Button type="danger" theme='solid'>删除</Button>
-                        </Popconfirm>
-                    </Space>
-                );
-            },
-        },
-    ];
 
     //添加数据
     const addData = () => {
@@ -355,15 +281,15 @@ function Team() {
                             sm: 24,
                             md: 24,
                             lg: 12,
-                            xl: 6,
-                            xxl: 6,
+                            xl: 8,
+                            xxl: 8,
                         }}
                         dataSource={dataSource}
                         renderItem={item => (
                             <List.Item style={style}>
                                 <div>
                                     <div style={{ display: 'flex' }}>
-                                        <Avatar size="small" style={{ margin: 4 }}>{item.name?.charAt(0)}</Avatar>
+                                        <Avatar size="small" style={{ margin: 4 }} src={teamIcon}></Avatar>
                                         <Title ellipsis={{ showTooltip: true }} style={{ fontSize: 20, width: '80%', marginLeft: 10 }}>
                                             {item.name}
                                         </Title>
@@ -388,21 +314,33 @@ function Team() {
                                                 value:
                                                     dateFns.format(new Date(item.buildTime), 'yyyy-MM-dd')
 
+                                            },
+                                            {
+                                                key: '我的权限',
+                                                value: () => {
+                                                    if (item.userRight === 1) {
+                                                        return <Tag color='green'>创建者</Tag>;
+                                                    } else if (item.userRight === 2) {
+                                                        return <Tag color='blue'>管理员</Tag>;
+                                                    } else {
+                                                        return <Tag color='light-blue'>成员</Tag>;
+                                                    }
+                                                }
                                             }
                                         ]}
                                     />
                                     <div style={{ margin: '12px 0', display: 'flex', justifyContent: 'flex-start' }}>
                                         <ButtonGroup theme="borderless" style={{ marginTop: 8 }}>
-                                            <Button onClick={()=>navigate(`/teaminfo/${item.id}`)}>查看</Button>
-                                            {item.adminId === userStore.user.id && <Button onClick={() => showEditDialog(item)}>编辑</Button>}
-                                            {item.adminId === userStore.user.id &&
+                                            <Button onClick={() => navigate(`/teaminfo/${item.id}`)}>查看</Button>
+                                            {item.userRight === 1 && <Button onClick={() => showEditDialog(item)}>编辑</Button>}
+                                            {item.userRight === 1 &&
                                                 <Popconfirm
                                                     okType='danger'
-                                                    title="确定是否删除"
+                                                    title="确定是否解散"
                                                     content="此修改将不可逆"
                                                     onConfirm={() => deleteData(item.id)}
                                                 >
-                                                    <Button type="danger" theme='borderless'>删除</Button>
+                                                    <Button type="danger" theme='borderless'>解散</Button>
                                                 </Popconfirm>}
                                         </ButtonGroup>
                                     </div>

@@ -1,19 +1,16 @@
 import './index.scss';
 import cssConfig from "./index.scss";
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Table, Avatar, Button, Space, Empty, Form, Modal, Toast, Card, Popconfirm } from '@douyinfe/semi-ui';
+import { Table, Avatar, Button, Space, Empty, Form, Modal, Toast, Card, Popconfirm, Input } from '@douyinfe/semi-ui';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
-import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
+import { IllustrationNoContentDark } from '@douyinfe/semi-illustrations';
 import * as dateFns from 'date-fns';
 import { useStore } from '@/store';
 import { http } from '@/utils';
 import { observer } from 'mobx-react-lite';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import { useNavigate } from 'react-router-dom';
-
-const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
-// 一天的毫秒数
-const DAY = 24 * 60 * 60 * 1000;
+import kbIcon from '@/assets/kb.png';
 
 /**
  * 个人知识库页面
@@ -31,6 +28,8 @@ function KnowledgeBase() {
     const [visible, setVisible] = useState(false);
     //知识库
     const [kb, setKb] = useState(null);
+    //搜索
+    const [search, setSearch] = useState('');
     //表单api
     const kbFormApi = useRef();
     //总共页数
@@ -76,7 +75,7 @@ function KnowledgeBase() {
             render: (text, record, index) => {
                 return (
                     <div>
-                        <Avatar size="small" shape="square" src={figmaIconUrl} style={{ marginRight: 12 }}></Avatar>
+                        <Avatar size="small" shape="square" src={kbIcon} style={{ marginRight: 12 }}></Avatar>
                         {text}
                     </div>
                 );
@@ -230,7 +229,7 @@ function KnowledgeBase() {
     //获取数据
     const getData = (current, size) => {
         setLoading(true);
-        http.get(`/kb/query?current=${current}&size=${size}`).then((res) => {
+        http.get(`/kb/query?current=${current}&size=${size}&search=${search}`).then((res) => {
             setData(res.data.kbs.records);
             setTotal(res.data.kbs.total);
         }).catch(e => {
@@ -303,6 +302,8 @@ function KnowledgeBase() {
                     >
                         <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
                     </Popconfirm>
+                    <Input placeholder='搜索' value={search} onChange={(value) => setSearch(value)} />
+                    <Button onClick={()=>{getData(pagination.currentPage,pagination.pageSize)}}>搜索</Button>
                 </Space>
                 <Table className='ShowTable' loading={loading} rowKey="id"
                     empty={

@@ -54,6 +54,18 @@ $input_width: 130;
     width: $input_width + px;
 }
 
+.HighLight {
+    background-color: yellow;
+}
+
+.TranslatePop {
+    height: 200px;
+    width: 400px;
+    padding: 20px 20px 20px 20px;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
 :export {
     barHeight: $bar_height;
     readerBorderWidth: $reader_border_width;

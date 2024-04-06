@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function TypeWriter({ children,typingSpeed,onFinish }) {
+function TypeWriter({ children,typingSpeed,onFinish}) {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -18,7 +18,7 @@ function TypeWriter({ children,typingSpeed,onFinish }) {
     return () => {
       clearInterval(interval);
     };
-  }, [children, typingSpeed, currentIndex]);
+  }, [children, typingSpeed, currentIndex,onFinish]);
 
   return <div>{displayText}</div>;
 }

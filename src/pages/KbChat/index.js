@@ -1,7 +1,7 @@
 import './index.scss';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '@/store';
-import { Table, Avatar, Button, Space, Tabs, Popconfirm, TabPane, Empty, Form, Modal, Toast, Card, Input, Popover, Typography } from '@douyinfe/semi-ui';
+import { Table, Avatar, Button, Space, Tabs, Popconfirm, TabPane, Empty, Form, Modal, Toast, Card, Input, Popover, Typography, Descriptions } from '@douyinfe/semi-ui';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import { useWindowSize } from '@/hooks';
@@ -9,12 +9,11 @@ import * as dateFns from 'date-fns';
 import { convertRes2Blob, getToken, http, isAuth, removeToken } from '@/utils';
 import cssConfig from "./index.scss";
 import Chat from '@/components/Chat';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import axios from 'axios';
-import UserStore from '@/store/user.Store';
+import paperIcon from '@/assets/paper.png'
 
-const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
 /**
  * 对话知识库页面
  */
@@ -34,6 +33,10 @@ function KbChat() {
     const [visible, setVisible] = useState(false);
     //文件列表
     const [files, setFiles] = useState([]);
+    //获取知识库消息
+    const [kb, setKb] = useState({});
+    //search
+    const [search, setSearch] = useState('');
     //上传ref
     const uploadRef = useRef();
     //表单api
@@ -42,6 +45,9 @@ function KbChat() {
     const [total, setTotal] = useState(0);
     //选择的表单
     const [delIds, setDelIds] = useState([]);
+
+    let [sparams] = useSearchParams();
+    const chatRef = useRef();
 
     //处理页面变化
     const handlePageChange = page => {
@@ -73,7 +79,7 @@ function KbChat() {
             render: (text, record, index) => {
                 return (
                     <div>
-                        <Avatar size="small" shape="square" src={figmaIconUrl} style={{ marginRight: 12 }}></Avatar>
+                        <Avatar size="small" shape="square" src={paperIcon} style={{ marginRight: 12 }}></Avatar>
                         {text}
                     </div>
                 );
@@ -112,7 +118,7 @@ function KbChat() {
                             content="此修改将不可逆"
                             onConfirm={() => deleteData(record.id)}
                         >
-                            <Button type="danger" theme='solid'>删除</Button>
+                            {kb.userRight===1 && <Button type="danger" theme='solid'>删除</Button>}
                         </Popconfirm>
                     </Space>
                 );
@@ -225,7 +231,7 @@ function KbChat() {
     //获取数据
     const getData = (current, size) => {
         setLoading(true);
-        http.get(`/paper/query?current=${current}&size=${size}&kb_id=${params.id}`).then((res) => {
+        http.get(`/paper/query?current=${current}&size=${size}&kb_id=${params.id}&search=${search}`).then((res) => {
             setData(res.data.papers.records);
             setTotal(res.data.papers.total);
         }).catch(e => {
@@ -239,6 +245,20 @@ function KbChat() {
         })
     };
 
+    //获取知识库数据
+    const getKb = () => {
+        console.log(params.id)
+        http.get(`/kb/${params.id}`).then((res) => {
+            setKb(res.data.kb);
+        }).catch(e => {
+            if (e?.code === 20040) {
+                Toast.error({ content: '获取知识库失败', showClose: false });
+            } else {
+                Toast.error({ content: e, showClose: false });
+            }
+        })
+    }
+
     //选择
     const rowSelection = {
         selectedRowKeys: delIds,
@@ -251,6 +271,10 @@ function KbChat() {
     useEffect(() => {
         getData(pagination.currentPage, pagination.pageSize);
     }, [pagination]);
+
+    useEffect(() => {
+        getKb();
+    }, [])
 
     //获取当前窗口高度
     const [winWidth, winHeight] = useWindowSize();
@@ -288,6 +312,13 @@ function KbChat() {
                 <Button>备注名</Button>
             </Popover></>
     );
+
+    const teamData = [
+        { key: '团队名', value: kb.name },
+        { key: '创建者', value: <><Avatar size="small" color='green' style={{ margin: 4 }}>{kb.builderName?.charAt(0)}</Avatar>{kb.builderName}</> },
+        { key: '创建时间', value: kb.buildTime ? dateFns.format(new Date(kb.buildTime), 'yyyy-MM-dd') : '' },
+        { key: '团队简介', value: kb.information }
+    ]
 
     return (
         <div >
@@ -344,27 +375,42 @@ function KbChat() {
             <Tabs type="button">
                 <TabPane tab="对话" itemKey="1">
                     <div>
-                        <Chat
+                        <Chat ref={chatRef}
                             objectId={params.id}
+                            startSearch={sparams.get('search')}
+                            mode='kb'
+                            onButtonClick={(item) => {
+                                if (item.id === -1) {
+                                    Toast.error({ content: '该文件已删除！', showClose: false });
+                                } else {
+                                    navigate(`/paper/${item.id}`);
+                                }
+                            }}
                             chatterId={userStore.user.id}
                             dataURL={`/chat/kb_list?kb_id=${params.id}`}
                             chatURL='/chat/kb'
-                            height={winHeight - 106} userName={userStore.user.name}  robotName='知识库小助手'></Chat>
+                            height={winHeight - 106} userName={userStore.user.name} robotName='知识库小助手'></Chat>
                     </div>
                 </TabPane>
                 <TabPane tab="论文管理" itemKey="2">
                     <div className='PaperTable'>
                         <Space className='ButtonArea'>
-                            <Button type="primary" onClick={showDialog}>上传</Button>
-                            <Popconfirm
-                                okType='danger'
-                                title="确定是否删除"
-                                content="此修改将不可逆"
-                                disabled={delIds.length === 0}
-                                onConfirm={() => deleteMultData(delIds)}
-                            >
-                                <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
-                            </Popconfirm>
+                            {kb.userRight === 1 &&
+                                <>
+                                    <Button type="primary" onClick={showDialog}>上传</Button>
+                                    <Popconfirm
+                                        okType='danger'
+                                        title="确定是否删除"
+                                        content="此修改将不可逆"
+                                        disabled={delIds.length === 0}
+                                        onConfirm={() => deleteMultData(delIds)}
+                                    >
+                                        <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
+                                    </Popconfirm>
+                                </>
+                            }
+                            <Input placeholder='搜索' value={search} onChange={(value) => setSearch(value)} />
+                            <Button onClick={() => { getData(pagination.currentPage, pagination.pageSize) }}>搜索</Button>
                         </Space>
                         <Table className='ShowTable' loading={loading} columns={columns} rowKey="id"
                             empty={
@@ -376,6 +422,9 @@ function KbChat() {
                             }
                             dataSource={dataSource} pagination={{ ...pagination, total: total }} rowSelection={rowSelection} />
                     </div>
+                </TabPane>
+                <TabPane tab="知识库信息" itemKey="3">
+                    <Descriptions data={teamData}></Descriptions>
                 </TabPane>
             </Tabs>
         </div>

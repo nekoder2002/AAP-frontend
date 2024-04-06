@@ -8,6 +8,7 @@ import KbChat from '@/pages/KbChat';
 import NotFound from '@/pages/NotFound';
 import Team from '@/pages/Team';
 import TeamInfo from '@/pages/TeamInfo';
+import UserInfo from '@/pages/UserInfo';
 
 /**
  * 路由配置
@@ -46,6 +47,12 @@ const routes = [
                 path: 'teaminfo/:id',
                 element: <TeamInfo />
             },
+            //用户信息页
+            {
+                path: 'user/:id',
+                element: <UserInfo />
+            },
+            //404页面
             {
                 path: '*',
                 element: <NotFound />

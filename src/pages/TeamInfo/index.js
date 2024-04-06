@@ -7,12 +7,11 @@ import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, I
 import * as dateFns from 'date-fns';
 import { copyToClip, http } from '@/utils';
 import cssConfig from "./index.scss";
-import Chat from '@/components/Chat';
 import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
+import kbIcon from '@/assets/kb.png';
 
-const figmaIconUrl = 'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/figma-icon.png';
 /**
  * 团队信息页面
  */
@@ -43,6 +42,8 @@ function TeamInfo() {
 
     //邀请码
     const [code, setCode] = useState('');
+    //search
+    const [search, setSearch] = useState('');
     //邀请弹窗可视
     const [userVisible, setUserVisible] = useState(false);
     //表格数据
@@ -123,7 +124,7 @@ function TeamInfo() {
             render: (text, record, index) => {
                 return (
                     <div>
-                        <Avatar size="small" shape="square" src={figmaIconUrl} style={{ marginRight: 12 }}></Avatar>
+                        <Avatar size="small" shape="square" src={kbIcon} style={{ marginRight: 12 }}></Avatar>
                         {text}
                     </div>
                 );
@@ -173,18 +174,16 @@ function TeamInfo() {
                 return (
                     <Space>
                         <Button type="primary" theme='solid' onClick={() => navigate(`/kbChat/${record.id}`)}>检索</Button>
-                        {team.adminId === userStore.user.id &&
-                            <>
-                                <Button type="primary" onClick={() => showKbDialog(record)}>编辑</Button>
-                                <Popconfirm
-                                    okType='danger'
-                                    title="确定是否删除"
-                                    content="此修改将不可逆"
-                                    onConfirm={() => deleteKbData(record.id)}
-                                >
-                                    <Button type="danger" theme='solid'>删除</Button>
-                                </Popconfirm></>
-                        }
+                        {record.userRight === 1 && <Button type="primary" onClick={() => showKbDialog(record)}>编辑</Button>}
+                        {record.userRight === 1 &&
+                            <Popconfirm
+                                okType='danger'
+                                title="确定是否删除"
+                                content="此修改将不可逆"
+                                onConfirm={() => deleteKbData(record.id)}
+                            >
+                                <Button type="danger" theme='solid'>删除</Button>
+                            </Popconfirm>}
                     </Space>
                 );
             },
@@ -197,11 +196,13 @@ function TeamInfo() {
             title: '成员名',
             dataIndex: 'name',
             render: (text, record, index) => {
-                return (
-                    <>
-                        <Avatar size="small" color={record.admin ? 'green' : 'light-blue'} style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}
-                    </>
-                );
+                if (record.userRight === 1) {
+                    return <><Avatar size="small" color='green' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}</>;
+                } else if (record.userRight === 2) {
+                    return <><Avatar size="small" color='blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}</>;
+                } else {
+                    return <><Avatar size="small" color='light-blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}</>;
+                }
             }
         },
         {
@@ -209,12 +210,28 @@ function TeamInfo() {
             dataIndex: 'email'
         },
         {
+            title: '学校',
+            dataIndex: 'school'
+        },
+        {
+            title: '学院',
+            dataIndex: 'college'
+        },
+        {
+            title: '专业',
+            dataIndex: 'major'
+        },
+        {
             title: '权限',
-            dataIndex: 'admin',
+            dataIndex: 'userRight',
             render: value => {
-                return (
-                    value ? <Tag color='green'>管理员</Tag> : <Tag color='blue'>成员</Tag>
-                )
+                if (value === 1) {
+                    return <Tag color='green'>创建者</Tag>;
+                } else if (value === 2) {
+                    return <Tag color='blue'>管理员</Tag>;
+                } else {
+                    return <Tag color='light-blue'>成员</Tag>;
+                }
             },
         },
         {
@@ -230,14 +247,17 @@ function TeamInfo() {
             render: (text, record, index) => {
                 return (
                     team.adminId === userStore.user.id && record.id !== userStore.user.id &&
-                    <Popconfirm
-                        okType='danger'
-                        title="确定是否删除"
-                        content="此修改将不可逆"
-                        onConfirm={() => deleteUserData(record.id)}
-                    >
-                        <Button type="danger" theme='solid'>删除</Button>
-                    </Popconfirm>
+                    <Space>
+                        <Popconfirm
+                            okType='danger'
+                            title="确定是否删除"
+                            content="此修改将不可逆"
+                            onConfirm={() => deleteUserData(record.id)}
+                        >
+                            <Button type="danger" theme='solid'>删除</Button>
+                        </Popconfirm>
+                        {record.userRight === 3 ? <Button type='warning' onClick={() => { setMemberRight(record.id, 2) }} theme='solid'>设为管理员</Button> : <Button type='warning' theme='solid' onClick={() => { setMemberRight(record.id, 3) }}>设为成员</Button>}
+                    </Space>
                 );
             },
         },
@@ -331,7 +351,7 @@ function TeamInfo() {
     //获取数据
     const getKbData = (current, size) => {
         setKbLoading(true);
-        http.get(`/kb/query_team?current=${current}&size=${size}&team_id=${params.id}`).then((res) => {
+        http.get(`/kb/query_team?current=${current}&size=${size}&team_id=${params.id}&search=${search}`).then((res) => {
             setKbData(res.data.kbs.records);
             setKbTotal(res.data.kbs.total);
         }).catch(e => {
@@ -441,6 +461,21 @@ function TeamInfo() {
         })
     };
 
+    //设置权限
+    const setMemberRight = (id, right) => {
+        http.post(`/team/right`, { userId: id, teamId: params.id, userRight: right }).then((res) => {
+            Toast.success({ content: "设置权限成功", showClose: false });
+            getUserData(userPagination.currentPage, userPagination.pageSize);
+        }).catch(e => {
+            console.log(e);
+            if (e?.code === 20020) {
+                Toast.error({ content: "设置权限失败", showClose: false });
+            } else {
+                Toast.error({ content: e, showClose: false });
+            }
+        })
+    }
+
     //选择
     const rowUserSelection = {
         selectedRowKeys: delUserIds,
@@ -515,9 +550,11 @@ function TeamInfo() {
             <Tabs type="button">
                 <TabPane tab="知识库" itemKey="1">
                     <div className='KbTable'>
-                        {team.adminId === userStore.user.id &&
-                            <Space className='ButtonArea'>
-                                <Button type="primary" theme='solid' onClick={() => showKbDialog(null)}>添加</Button>
+
+                        <Space className='ButtonArea'>
+                            {team.userRight !== 3 &&
+                                <Button type="primary" theme='solid' onClick={() => showKbDialog(null)}>添加</Button>}
+                            {team.userRight === 1 &&
                                 <Popconfirm
                                     disabled={delKbIds.length === 0}
                                     okType='danger'
@@ -526,8 +563,10 @@ function TeamInfo() {
                                     onConfirm={() => deleteMultKbData(delKbIds)}
                                 >
                                     <Button type="danger" theme='solid' disabled={delKbIds.length === 0}>批量删除</Button>
-                                </Popconfirm>
-                            </Space>}
+                                </Popconfirm>}
+                            <Input placeholder='搜索' value={search} onChange={(value) => setSearch(value)} />
+                            <Button onClick={() => { getKbData(kbPagination.currentPage, kbPagination.pageSize) }}>搜索</Button>
+                        </Space>
                         <Table className='ShowTable' loading={kbLoading} rowKey="id"
                             empty={
                                 <Empty
@@ -581,7 +620,7 @@ function TeamInfo() {
                     <Descriptions data={teamData}></Descriptions>
                 </TabPane>
             </Tabs>
-        </div>
+        </div >
     );
 }
 

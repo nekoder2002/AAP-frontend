@@ -3,8 +3,7 @@ import { getToken, removeToken } from "./token"
 import { history } from "./history"
 
 const http = axios.create({
-    baseURL: 'http://localhost:8080',
-    timeout: 5000
+    baseURL: 'http://localhost:8080'
 })
 
 //添加请求拦截器
