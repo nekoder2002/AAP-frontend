@@ -35,7 +35,6 @@ function Paper() {
     const [note, setNote] = useState('');
     //noteList
     const [noteData, setNoteData] = useState([]);
-
     const changeRef = useRef(null);
     const chatApi = useRef(null);
     const readerApi = useRef(null);
@@ -143,6 +142,7 @@ function Paper() {
                             chatterId={userStore.user.id}
                             mode='paper'
                             dataURL={`/chat/paper_list?paper_id=${params.id}`}
+                            questionURL={`/paper/questions?paper_id=${params.id}`}
                             chatURL='/chat/paper'
                             height={winHeight - 110} userName={userStore.user.name} robotName='论文小助手'></Chat>
                     </TabPane>
