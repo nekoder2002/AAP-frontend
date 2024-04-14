@@ -14,6 +14,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
+import WordCloud from '@/components/WordCloud';
 
 /**
  * 单文档论文页
@@ -28,7 +29,7 @@ function Paper() {
     //当前论文阅读器宽度
     const [readerWidth, setReaderWidth] = useState(0.4 * winWidth);
     //获取当前论文
-    const [paper, setPaper] = useState({});
+    const [paper, setPaper] = useState(null);
     //获取pdf
     const [pdf, setPdf] = useState(null);
     //note
@@ -127,7 +128,7 @@ function Paper() {
             </div>
             <div style={{ float: 'left' }} >
                 <Resizable ref={changeRef} defaultSize={{ width: readerWidth }} onResizeStop={resizeReader} enable={{ right: true }} minWidth={0.45 * winWidth - 240} maxWidth={0.7 * winWidth - 240} onResize={resizeReader}>
-                    <PdfReader onQuery={onQuery} ref={readerApi} pdf={pdf} title={paper.name} width={readerWidth} height={winHeight - 55}></PdfReader>
+                    <PdfReader onQuery={onQuery} ref={readerApi} pdf={pdf} title={paper?.name} width={readerWidth} height={winHeight - 55}></PdfReader>
                 </Resizable>
             </div>
             <div style={{ position: 'absolute', left: readerWidth + 250, width: winWidth - readerWidth - 250 }} >
@@ -184,6 +185,11 @@ function Paper() {
                                         )}
                                 </Timeline>
                             </div>
+                        </div>
+                    </TabPane>
+                    <TabPane tab="词云" itemKey="3">
+                        <div style={{ width: winWidth - 50 }}>
+                            <WordCloud data={paper !== null ? paper.freqList : []} />
                         </div>
                     </TabPane>
                 </Tabs>

@@ -1,21 +1,26 @@
 //格式化时间
-function formatDate(date) {
+function formatDate(date, onlyShowDate = false) {
     const year = date.getFullYear();
     const month = ('0' + (date.getMonth() + 1)).slice(-2);
     const day = ('0' + date.getDate()).slice(-2);
     const hours = ('0' + date.getHours()).slice(-2);
     const minutes = ('0' + date.getMinutes()).slice(-2);
     const seconds = ('0' + date.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    if (onlyShowDate) {
+        return `${year}-${month}-${day}`;
+    } else {
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
 }
 
 //复制到剪贴板
 function copyToClip(content) {
-    var aux = document.createElement("input"); 
-    aux.setAttribute("value", content); 
-    document.body.appendChild(aux); 
+    var aux = document.createElement("input");
+    aux.setAttribute("value", content);
+    document.body.appendChild(aux);
     aux.select();
-    document.execCommand("copy"); 
+    document.execCommand("copy");
     document.body.removeChild(aux);
 }
 
@@ -54,4 +59,4 @@ function convertRes2Blob(response) {
     }
 }
 
-export { formatDate, convertRes2Blob,copyToClip };
+export { formatDate, convertRes2Blob, copyToClip };

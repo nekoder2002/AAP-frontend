@@ -1,5 +1,5 @@
 import { Layout as SLayout, Nav, Avatar, Dropdown, Toast, Button } from '@douyinfe/semi-ui';
-import { IconHome, IconInbox, IconUserCircle, IconUserGroup } from '@douyinfe/semi-icons';
+import { IconHome, IconInbox, IconUserCircle, IconUserGroup,IconBulb  } from '@douyinfe/semi-icons';
 import logo from '@/assets/logo2.png';
 import './index.scss';
 import cssConfig from "./index.scss";
@@ -89,6 +89,12 @@ function Layout() {
                                     icon: <IconInbox />,
                                     itemKey: '/kb',
                                     onClick: () => { navigate('/kb') }
+                                },
+                                {
+                                    text: '学习清单',
+                                    icon: <IconBulb />,
+                                    itemKey: '/schedule',
+                                    onClick: () => { navigate('/schedule') }
                                 },
                                 { itemKey: `/user/${userStore.user.id}`, text: '用户信息', icon: <IconUserCircle />, onClick: () => { navigate(`/user/${userStore.user.id}`) } }
                             ]}

@@ -13,6 +13,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import axios from 'axios';
 import paperIcon from '@/assets/paper.png'
+import Pie from '@/components/Pie';
 
 /**
  * 对话知识库页面
@@ -45,6 +46,8 @@ function KbChat() {
     const [total, setTotal] = useState(0);
     //选择的表单
     const [delIds, setDelIds] = useState([]);
+    //获取学习信息
+    const [studyInfo,setStudyInfo]=useState([]);
 
     let [sparams] = useSearchParams();
     const chatRef = useRef();
@@ -97,6 +100,15 @@ function KbChat() {
             }
         },
         {
+            title: '访问量',
+            dataIndex: 'visit',
+            render: (text, record, index) => {
+                return (
+                    <span style={{ fontSize: 15 }}>{text}</span>
+                );
+            }
+        },
+        {
             title: '创建日期',
             dataIndex: 'buildTime',
             // sorter: (a, b) => (a.updateTime - b.updateTime > 0 ? 1 : -1),
@@ -118,7 +130,7 @@ function KbChat() {
                             content="此修改将不可逆"
                             onConfirm={() => deleteData(record.id)}
                         >
-                            {kb.userRight===1 && <Button type="danger" theme='solid'>删除</Button>}
+                            {kb.userRight === 1 && <Button type="danger" theme='solid'>删除</Button>}
                         </Popconfirm>
                     </Space>
                 );
@@ -132,6 +144,19 @@ function KbChat() {
             uploadRef.current.upload();
         }).catch(e => {
         });
+    }
+
+    //获取学习信息
+    const getStudyInfo=()=>{
+        http.get(`/paper/study_count?kb_id=${params.id}`).then((res) => {
+            setStudyInfo(res.data.study);
+        }).catch(e => {
+            if (e?.code === 20040) {
+                Toast.error({ content: '获取学习信息失败', showClose: false });
+            } else {
+                Toast.error({ content: e, showClose: false });
+            }
+        })
     }
 
     //下载
@@ -247,7 +272,6 @@ function KbChat() {
 
     //获取知识库数据
     const getKb = () => {
-        console.log(params.id)
         http.get(`/kb/${params.id}`).then((res) => {
             setKb(res.data.kb);
         }).catch(e => {
@@ -274,6 +298,7 @@ function KbChat() {
 
     useEffect(() => {
         getKb();
+        getStudyInfo();
     }, [])
 
     //获取当前窗口高度
@@ -317,7 +342,8 @@ function KbChat() {
         { key: '团队名', value: kb.name },
         { key: '创建者', value: <><Avatar size="small" color='green' style={{ margin: 4 }}>{kb.builderName?.charAt(0)}</Avatar>{kb.builderName}</> },
         { key: '创建时间', value: kb.buildTime ? dateFns.format(new Date(kb.buildTime), 'yyyy-MM-dd') : '' },
-        { key: '团队简介', value: kb.information }
+        { key: '团队简介', value: kb.information },
+        { key: '学习统计', value:<><Pie data={studyInfo}/></>}
     ]
 
     return (

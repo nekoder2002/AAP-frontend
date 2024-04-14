@@ -9,6 +9,7 @@ import NotFound from '@/pages/NotFound';
 import Team from '@/pages/Team';
 import TeamInfo from '@/pages/TeamInfo';
 import UserInfo from '@/pages/UserInfo';
+import Schedule from '@/pages/Schedule';
 
 /**
  * 路由配置
@@ -46,6 +47,11 @@ const routes = [
             {
                 path: 'teaminfo/:id',
                 element: <TeamInfo />
+            },
+            //计划页
+            {
+                path: 'schedule',
+                element: <Schedule />
             },
             //用户信息页
             {
