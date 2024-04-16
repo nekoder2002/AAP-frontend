@@ -43,7 +43,7 @@ function ChatGroup({ chatRecord, userName, robotName, onFinish, onButtonClick, m
                         renderItem={item => {
                             if (mode === 'kb') {
                                 return (
-                                    <List.Item key={item.id}
+                                    <List.Item key={crypto.randomUUID()}
                                         header={
                                             <Avatar color="blue">{item.fileName.charAt(0)}</Avatar>
                                         }

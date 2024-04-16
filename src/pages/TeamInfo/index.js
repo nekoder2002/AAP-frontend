@@ -22,9 +22,9 @@ function TeamInfo() {
     const { userStore } = useStore();
     //获取路径参数
     const params = useParams();
+
     const [team, setTeam] = useState({});
-
-
+    
     //表格数据
     const [kbDataSource, setKbData] = useState([]);
     //表格加载状态

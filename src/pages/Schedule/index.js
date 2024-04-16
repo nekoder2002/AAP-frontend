@@ -170,7 +170,7 @@ function Schedule() {
     }, [isFinish])
 
     const onPickChange = (value) => {
-        if (value.length === 2) {
+        if (value.length === 2 || value.length === 0) {
             setIsFinish(null);
         } else if (value[0] === 1) {
             setIsFinish(true);
@@ -187,13 +187,6 @@ function Schedule() {
         paddingTop: '10px',
         margin: '8px 2px'
     };
-
-    // {
-    //     key: '9',
-    //     start: new Date(2019, 6, 26, 10, 0, 0),
-    //     end: new Date(2019, 6, 27, 16, 0, 0),
-    //     children: <div style={allDayStyle}>7月26日 10:00 ~ 7月27日 16:00</div>,
-    // },
 
     const dailyEventStyle = {
         borderRadius: '3px',
@@ -232,7 +225,7 @@ function Schedule() {
                     key: '' + -dataSource[i].id,
                     start: start,
                     end: rel,
-                    children: <div style={dailyEventStyle}>{dataSource[i].name + ` 预期时间：${formatDate(start, true)} ~ ${formatDate(rel, true)}`}</div>
+                    children: <div style={dailyFinishStyle}>{dataSource[i].name + ` 预期时间：${formatDate(start, true)} ~ ${formatDate(rel, true)}`}</div>
                 })
             }
         }

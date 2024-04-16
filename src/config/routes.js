@@ -10,6 +10,7 @@ import Team from '@/pages/Team';
 import TeamInfo from '@/pages/TeamInfo';
 import UserInfo from '@/pages/UserInfo';
 import Schedule from '@/pages/Schedule';
+import ScheduleInfo from '@/pages/ScheduleInfo';
 
 /**
  * 路由配置
@@ -55,9 +56,14 @@ const routes = [
             },
             //用户信息页
             {
+                path: 'scheduleinfo/:id',
+                element: <ScheduleInfo />
+            },
+            {
                 path: 'user/:id',
                 element: <UserInfo />
             },
+            //计划
             //404页面
             {
                 path: '*',

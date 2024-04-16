@@ -1,7 +1,7 @@
 // 基础间隔
 $base_space: 12;
 // 基础宽度
-$base_width: 600;
+$base_width: 400;
 //按钮宽度
 $btn_width: 80;
 //按钮间距
@@ -13,27 +13,21 @@ $btn_space: 10;
     margin-bottom: 50px;
 }
 
-.ScheduleButtonArea{
-    margin-left: 20px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
 // 表单
-.PaperForm {
+.ScheduleForm {
     display: block;
     width: $base_width + px;
     margin: 0 auto;
 }
 
 // 输入框
-.PaperInput {
+.ScheduleInput {
     width: $base_width + px;
     margin: $base_space + px 0;
 }
 
 // 按钮区
-.PaperButton {
+.ScheduleButton {
     width: $btn_width + px;
 }
 

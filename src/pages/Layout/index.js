@@ -91,7 +91,7 @@ function Layout() {
                                     onClick: () => { navigate('/kb') }
                                 },
                                 {
-                                    text: '学习清单',
+                                    text: '学习计划',
                                     icon: <IconBulb />,
                                     itemKey: '/schedule',
                                     onClick: () => { navigate('/schedule') }
