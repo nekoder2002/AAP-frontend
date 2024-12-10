@@ -6,7 +6,7 @@ import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, Ill
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import * as dateFns from 'date-fns';
 import { useStore } from '@/store';
-import { formatDate, http } from '@/utils';
+import { formatDate, http, maxDate } from '@/utils';
 import { observer } from 'mobx-react-lite';
 import Text from '@douyinfe/semi-ui/lib/es/typography/text';
 import Title from '@douyinfe/semi-ui/lib/es/typography/title';
@@ -203,7 +203,7 @@ function Schedule() {
         boxSizing: 'border-box',
         border: 'var(--semi-color-warning) 1px solid',
         padding: '2px',
-        backgroundColor: 'var(--semi-color-primary-light-default)',
+        backgroundColor: 'red',
         height: '100%',
         overflow: 'hidden',
     };
@@ -213,22 +213,24 @@ function Schedule() {
         for (let i = 0; i < dataSource.length; i++) {
             let start = new Date(dataSource[i].startTime);
             let end = new Date(dataSource[i].endTime);
-            temp.push({
-                key: '' + dataSource[i].id,
-                start: start,
-                end: end,
-                children: <div style={dailyEventStyle}>{dataSource[i].name + ` 预期时间：${formatDate(start, true)} ~ ${formatDate(end, true)}`}</div>
-            })
-            if (dataSource[i].relTime) {
-                let rel = new Date(dataSource[i].relTime);
+            if (dataSource[i].realTime) {
+                let rel = maxDate(start, new Date(dataSource[i].realTime));
                 temp.push({
-                    key: '' + -dataSource[i].id,
+                    key: '' + dataSource[i].id,
                     start: start,
                     end: rel,
-                    children: <div style={dailyFinishStyle}>{dataSource[i].name + ` 预期时间：${formatDate(start, true)} ~ ${formatDate(rel, true)}`}</div>
+                    children: <div style={dailyFinishStyle}>{dataSource[i].name + ` 完成时间：${formatDate(start, true)} ~ ${formatDate(rel, true)}`}</div>
+                })
+            } else {
+                temp.push({
+                    key: '' + dataSource[i].id,
+                    start: start,
+                    end: end,
+                    children: <div style={dailyEventStyle}>{dataSource[i].name + ` 预期时间：${formatDate(start, true)} ~ ${formatDate(end, true)}`}</div>
                 })
             }
         }
+        console.log(temp);
         setEvents(temp)
     }, [dataSource])
 
@@ -236,7 +238,8 @@ function Schedule() {
         <div >
             <Modal
                 title='学习日历'
-                width={800}
+                width={900}
+                height={1000}
                 centered
                 maskClosable={false}
                 visible={calVisible}
@@ -244,12 +247,15 @@ function Schedule() {
                 onOk={() => { setCalVisible(false) }}
             >
                 <DatePicker value={displayValue} onChange={e => { setDisplay(e) }} />
-                <Calendar
-                    mode="month"
-                    displayValue={displayValue}
-                    events={events}
-                    minEventHeight={80}
-                ></Calendar>
+                <div style={{ width: 870, height: 800, overflowX: 'hidden', overflowY: 'scroll' }}>
+                    <Calendar
+                        mode="month"
+                        height={events.length * 250}
+                        displayValue={displayValue}
+                        events={events}
+                        minEventHeight={events.length * 25}
+                    ></Calendar>
+                </div>
             </Modal>
             {/* 编辑对话框 */}
             <Modal
@@ -358,6 +364,12 @@ function Schedule() {
                                                 key: '结束日期',
                                                 value:
                                                     dateFns.format(new Date(item.endTime), 'yyyy-MM-dd')
+
+                                            },
+                                            {
+                                                key: '实际完成日期',
+                                                value:
+                                                    item.realTime ? dateFns.format(new Date(item.realTime), 'yyyy-MM-dd') : '暂未完成'
 
                                             },
                                             {

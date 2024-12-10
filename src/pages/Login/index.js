@@ -38,7 +38,7 @@ function Login() {
             navigate('/')
         } catch (e) {
             if (e?.code === 20040) {
-                Toast.error({ content: '用户名和密码错误', showClose: false });
+                Toast.error({ content: '邮箱和密码错误', showClose: false });
             } else {
                 Toast.error({ content: e, showClose: false });
             }

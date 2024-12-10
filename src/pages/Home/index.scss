@@ -26,6 +26,12 @@ $base_space: 80;
     margin-bottom: $base_space + px;
 }
 
+.Text2 {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: $base_space + px;
+}
+
 .Select {
     width: $select_width + px;
 }

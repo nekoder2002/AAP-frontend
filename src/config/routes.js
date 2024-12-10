@@ -11,6 +11,11 @@ import TeamInfo from '@/pages/TeamInfo';
 import UserInfo from '@/pages/UserInfo';
 import Schedule from '@/pages/Schedule';
 import ScheduleInfo from '@/pages/ScheduleInfo';
+import Log from '@/pages/Log';
+import AdminLog from '@/pages/AdminLog';
+import AdminUser from '@/pages/AdminUser';
+import AdminValid from '@/pages/AdminValid';
+import AdminTeam from '@/pages/AdminTeam';
 
 /**
  * 路由配置
@@ -66,9 +71,31 @@ const routes = [
             //计划
             //404页面
             {
+                path: '/log',
+                element: <Log />
+            },
+            {
+                path: '/adminlog',
+                element: <AdminLog />
+            },
+            {
+                path: '/adminuser',
+                element: <AdminUser />
+            },
+            {
+                path: '/adminValid',
+                element: <AdminValid />
+            },
+            {
+                path: '/adminTeam',
+                element: <AdminTeam />
+            },
+            //计划
+            //404页面
+            {
                 path: '*',
                 element: <NotFound />
-            }
+            },
         ]
     },
     //登陆/注册 页面

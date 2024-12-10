@@ -1,5 +1,5 @@
 import { Layout as SLayout, Nav, Avatar, Dropdown, Toast, Button } from '@douyinfe/semi-ui';
-import { IconHome, IconInbox, IconUserCircle, IconUserGroup,IconBulb  } from '@douyinfe/semi-icons';
+import { IconHome, IconInbox, IconUserCircle, IconUserGroup, IconBulb, IconBranch } from '@douyinfe/semi-icons';
 import logo from '@/assets/logo2.png';
 import './index.scss';
 import cssConfig from "./index.scss";
@@ -50,7 +50,7 @@ function Layout() {
                     mode={'horizontal'}
                     header={{
                         children: <>
-                            <Button onClick={()=>{window.history.back()}} icon={<IconSmallTriangleLeft />} />
+                            <Button onClick={() => { window.history.back() }} icon={<IconSmallTriangleLeft />} />
                             <img className='NavLogo' src={logo} alt="aap-logo" title="论文阅读工具" />
                         </>
                     }}
@@ -76,7 +76,28 @@ function Layout() {
                             isCollapsed={false}
                             selectedKeys={[location]}
                             style={{ height: winHeight - parseInt(cssConfig.topHeight), overflowY: 'auto' }}
-                            items={[
+                            items={userStore.user.admin ? [
+                                {
+                                    itemKey: '/adminteam',
+                                    icon: <IconUserGroup />,
+                                    text: '团队管理',
+                                    onClick: () => { navigate('/adminteam') }
+                                },
+                                {
+                                    text: '团队审核',
+                                    icon: <IconUserGroup />,
+                                    itemKey: '/adminvalid',
+                                    onClick: () => { navigate('/adminvalid') }
+                                },
+                                { itemKey: `/adminuser`, text: '用户管理', icon: <IconUserCircle />, onClick: () => { navigate(`/adminuser`) } },
+                                {
+                                    text: '日志查询',
+                                    icon: <IconBranch />,
+                                    itemKey: '/adminlog',
+                                    onClick: () => { navigate('/adminlog') }
+                                },
+                                { itemKey: `/user/${userStore.user.id}`, text: '个人信息管理', icon: <IconUserCircle />, onClick: () => { navigate(`/user/${userStore.user.id}`) } },
+                            ] : [
                                 { itemKey: '/', text: '主页', icon: <IconHome />, onClick: () => { navigate('/') } },
                                 {
                                     itemKey: '/team',
@@ -96,7 +117,13 @@ function Layout() {
                                     itemKey: '/schedule',
                                     onClick: () => { navigate('/schedule') }
                                 },
-                                { itemKey: `/user/${userStore.user.id}`, text: '用户信息', icon: <IconUserCircle />, onClick: () => { navigate(`/user/${userStore.user.id}`) } }
+                                { itemKey: `/user/${userStore.user.id}`, text: '用户信息', icon: <IconUserCircle />, onClick: () => { navigate(`/user/${userStore.user.id}`) } },
+                                {
+                                    text: '日志记录',
+                                    icon: <IconBranch />,
+                                    itemKey: '/log',
+                                    onClick: () => { navigate('/log') }
+                                },
                             ]}
                             onSelect={key => console.log(key)}
                         />

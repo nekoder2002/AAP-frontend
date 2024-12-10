@@ -8,7 +8,7 @@ import "./index.scss";
 import ChatGroup from "./ChatGroup";
 import { http } from "@/utils";
 
-const Chat = forwardRef(({ objectId, chatterId, dataURL, chatURL, questionURL = '', height, userName, robotName, mode, onButtonClick, startSearch }, ref) => {
+const Chat = forwardRef(({ objectId, chatterId, dataURL, userName, chatURL, questionURL = '', height, robotName, mode, onButtonClick, startSearch }, ref) => {
     // 暴露给父组件的属性
     useImperativeHandle(ref, () => ({
         sendMessage
@@ -33,6 +33,7 @@ const Chat = forwardRef(({ objectId, chatterId, dataURL, chatURL, questionURL = 
         let time = new Date();
         setChatRecords([...chatRecords, {
             id: -1,
+            chatterName: userName,
             question: msg,
             chatTime: time
         }])
@@ -138,7 +139,7 @@ const Chat = forwardRef(({ objectId, chatterId, dataURL, chatURL, questionURL = 
             <div className="ChatArea" ref={chatArea} style={{ height: height - 180, overflowX: 'auto' }}>
                 {chatRecords?.map((it) => {
                     return (
-                        <ChatGroup onButtonClick={onButtonClick} mode={mode} key={it.id} chatRecord={it} userName={userName} robotName={robotName} onFinish={() => {
+                        <ChatGroup onButtonClick={onButtonClick} mode={mode} key={it.id} chatRecord={it} robotName={robotName} onFinish={() => {
                             //滚动到最底部
                             chatArea.current.scrollTop = chatArea.current.scrollHeight;
                         }} />
@@ -153,7 +154,7 @@ const Chat = forwardRef(({ objectId, chatterId, dataURL, chatURL, questionURL = 
                         position={'topLeft'}
                         render={
                             <Dropdown.Menu>
-                                <Dropdown.Title>猜你想问<Button theme="borderless" disabled={loading} onClick={() => { getQuestion() }}>{loading?'加载中...':'换一换'}</Button> </Dropdown.Title>
+                                <Dropdown.Title>猜你想问<Button theme="borderless" disabled={loading} onClick={() => { getQuestion() }}>{loading ? '加载中...' : '换一换'}</Button> </Dropdown.Title>
                                 {questions.map(it =>
                                     <Dropdown.Item onClick={() => { sendMessage(it) }}>{it}</Dropdown.Item>
                                 )}

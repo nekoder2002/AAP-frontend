@@ -1,6 +1,7 @@
 import axios from "axios"
 import { getToken, removeToken } from "./token"
 import { history } from "./history"
+import { Toast } from "@douyinfe/semi-ui"
 
 const http = axios.create({
     baseURL: 'http://localhost:8080'
@@ -23,7 +24,7 @@ http.interceptors.response.use((response) => {
         if (response.data.code === 20000) {
             removeToken()
             history.push('/login')
-            return Promise.reject('登陆过期，请重新登录');
+            return Promise.reject("登陆过期，请重新登录");
         } else if (response.data.code === 10000) {
             return Promise.reject(response.data.message);
         }

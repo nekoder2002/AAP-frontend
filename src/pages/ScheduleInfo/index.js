@@ -89,7 +89,7 @@ function ScheduleInfo() {
             }
         },
         {
-            title: '所属论文',
+            title: '所属知识库',
             dataIndex: 'knowledgeBaseName',
             render: (text, record, index) => {
                 return (

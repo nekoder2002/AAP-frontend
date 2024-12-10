@@ -1,11 +1,11 @@
 import './index.scss';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '@/store';
-import { Table, Avatar, Button, Space, Tabs, Popconfirm, TabPane, Empty, Form, Modal, Toast, Card, Input, Popover, Typography, Tag, Descriptions } from '@douyinfe/semi-ui';
+import { Table, Avatar, Button, Space, Tabs, Popconfirm, TabPane, Empty, Form, Modal, Toast, Card, Input, Popover, Typography, Tag, Descriptions, Timeline } from '@douyinfe/semi-ui';
 import { IllustrationConstruction, IllustrationSuccess, IllustrationFailure, IllustrationNoAccess, IllustrationNoContent, IllustrationNotFound, IllustrationNoResult } from '@douyinfe/semi-illustrations';
 import { IllustrationIdle, IllustrationIdleDark, IllustrationConstructionDark, IllustrationSuccessDark, IllustrationFailureDark, IllustrationNoAccessDark, IllustrationNoContentDark, IllustrationNotFoundDark, IllustrationNoResultDark } from '@douyinfe/semi-illustrations';
 import * as dateFns from 'date-fns';
-import { copyToClip, http } from '@/utils';
+import { copyToClip, formatDate, http } from '@/utils';
 import cssConfig from "./index.scss";
 import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
@@ -24,7 +24,7 @@ function TeamInfo() {
     const params = useParams();
 
     const [team, setTeam] = useState({});
-    
+
     //表格数据
     const [kbDataSource, setKbData] = useState([]);
     //表格加载状态
@@ -33,6 +33,8 @@ function TeamInfo() {
     const [kbVisible, setKbVisible] = useState(false);
     //知识库
     const [kb, setKb] = useState(null);
+    //log
+    const [logs, setLogs] = useState([]);
     //表单api
     const kbFormApi = useRef();
     //总共页数
@@ -246,7 +248,7 @@ function TeamInfo() {
             dataIndex: 'op',
             render: (text, record, index) => {
                 return (
-                    team.adminId === userStore.user.id && record.id !== userStore.user.id &&
+                    ((team.adminId === userStore.user.id && record.id !== userStore.user.id) || team.userRight === 1&&team.adminId!==record.id) &&
                     <Space>
                         <Popconfirm
                             okType='danger'
@@ -273,6 +275,7 @@ function TeamInfo() {
                     ...kbPagination,
                     currentPage: 1
                 })
+                getLogData();
             }).catch(e => {
 
                 if (e?.code === 20010) {
@@ -285,6 +288,18 @@ function TeamInfo() {
         });
     }
 
+    const getLogData = () => {
+        http.get(`/log/list_team?team_id=${params.id}`).then((res) => {
+            setLogs(res.data.logs);
+        }).catch(e => {
+            if (e?.code === 20040) {
+                Toast.error({ content: '获取日志信息失败', showClose: false });
+            } else {
+                Toast.error({ content: e, showClose: false });
+            }
+        })
+    }
+
     //更新数据
     const updateKbData = (id) => {
         kbFormApi.current.validate().then((res) => {
@@ -292,6 +307,7 @@ function TeamInfo() {
                 Toast.success({ content: "更新知识库成功", showClose: false });
                 setKbVisible(false);
                 getKbData(kbPagination.currentPage, kbPagination.pageSize);
+                getLogData();
             }).catch(e => {
                 console.log(e);
                 if (e?.code === 20020) {
@@ -314,6 +330,7 @@ function TeamInfo() {
             } else {
                 getKbData(kbPagination.currentPage, kbPagination.pageSize);
             }
+            getLogData();
         }).catch(e => {
             console.log(e);
             if (e?.code === 20030) {
@@ -338,6 +355,7 @@ function TeamInfo() {
                 getKbData(kbPagination.currentPage, kbPagination.pageSize);
             }
             setKbDelIds([]);
+            getLogData();
         }).catch(e => {
             console.log(e);
             if (e?.code === 20030) {
@@ -393,6 +411,7 @@ function TeamInfo() {
 
     useEffect(() => {
         getTeam();
+        getLogData();
     }, []);
 
     //删除数据
@@ -410,6 +429,7 @@ function TeamInfo() {
             } else {
                 Toast.success({ content: "删除成员成功", showClose: false });
             }
+            getLogData();
         }).catch(e => {
             console.log(e);
             if (e?.code === 20030) {
@@ -434,6 +454,7 @@ function TeamInfo() {
                 getUserData(userPagination.currentPage, userPagination.pageSize);
             }
             setUserDelIds([]);
+            getLogData();
         }).catch(e => {
             console.log(e);
             if (e?.code === 20030) {
@@ -466,6 +487,7 @@ function TeamInfo() {
         http.post(`/team/right`, { userId: id, teamId: params.id, userRight: right }).then((res) => {
             Toast.success({ content: "设置权限成功", showClose: false });
             getUserData(userPagination.currentPage, userPagination.pageSize);
+            getLogData();
         }).catch(e => {
             console.log(e);
             if (e?.code === 20020) {
@@ -491,6 +513,7 @@ function TeamInfo() {
 
     //团队信息
     const teamData = [
+        { key: '团队id', value: team.id },
         { key: '团队名', value: team.name },
         { key: '管理员', value: <><Avatar size="small" color='green' style={{ margin: 4 }}>{team.adminName?.charAt(0)}</Avatar>{team.adminName}</> },
         { key: '创建时间', value: team.buildTime ? dateFns.format(new Date(team.buildTime), 'yyyy-MM-dd') : '' },
@@ -595,14 +618,18 @@ function TeamInfo() {
                                     </Popconfirm>
                                 </>
                                 :
-                                <Popconfirm
-                                    okType='danger'
-                                    title="确定是否退出"
-                                    content="此修改将不可逆"
-                                    onConfirm={() => deleteUserData(userStore.user.id)}
-                                >
-                                    <Button type="danger" theme='solid'>退出团队</Button>
-                                </Popconfirm>
+                                <>
+                                    {
+                                        !userStore.user.admin &&
+                                        <Popconfirm
+                                            okType='danger'
+                                            title="确定是否退出"
+                                            content="此修改将不可逆"
+                                            onConfirm={() => deleteUserData(userStore.user.id)}
+                                        >
+                                            <Button type="danger" theme='solid'>退出团队</Button>
+                                        </Popconfirm>
+                                    }</>
                             }
                         </Space>
                         <Table className='ShowTable' loading={userLoading} rowKey="id"
@@ -616,7 +643,25 @@ function TeamInfo() {
                             columns={userColumns} dataSource={userDataSource} rowSelection={rowUserSelection} pagination={{ ...userPagination, total: userTotal }} />
                     </div>
                 </TabPane>
-                <TabPane tab="团队信息" itemKey="3">
+                <TabPane tab="团队日志" itemKey="3">
+                    <div className='LogInfo'>
+                        <Timeline style={{ width: '95%' }}>
+                            {logs.length === 0 ?
+                                <Empty
+                                    image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
+                                    darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
+                                    description={'暂无日志'}
+                                />
+                                : logs?.map(item => (
+                                    <Timeline.Item time={formatDate(new Date(item.time))} type="ongoing">
+                                        {item.content}
+                                    </Timeline.Item>
+                                )
+                                )}
+                        </Timeline>
+                    </div>
+                </TabPane>
+                <TabPane tab="团队信息" itemKey="4">
                     <Descriptions data={teamData}></Descriptions>
                 </TabPane>
             </Tabs>

@@ -36,12 +36,12 @@ function convertRes2Blob(response) {
     const blob = new Blob([response.data], { type: 'application/octet-stream' })
     console.log(blob)
     if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        // 兼容IE，window.navigator.msSaveBlob：以本地方式保存文件
+        // 兼容IE,window.navigator.msSaveBlob：以本地方式保存文件
         window.navigator.msSaveBlob(blob, decodeURI(filename))
     } else {
         // 创建新的URL并指向File对象或者Blob对象的地址
         const blobURL = window.URL.createObjectURL(blob)
-        // 创建a标签，用于跳转至下载链接
+        // 创建a标签,用于跳转至下载链接
         const tempLink = document.createElement('a')
         tempLink.style.display = 'none'
         tempLink.href = blobURL
@@ -59,4 +59,14 @@ function convertRes2Blob(response) {
     }
 }
 
-export { formatDate, convertRes2Blob, copyToClip };
+//日期比较大小
+function maxDate(date1, date2) {
+    if (date1 > date2) {
+        return date1;
+    }
+    else {
+        return date2;
+    }
+}
+
+export { formatDate, convertRes2Blob, copyToClip, maxDate};

@@ -12,7 +12,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 import { useWindowSize } from '@/hooks';
 /**
- * 团队信息页面
+ * 个人信息页面
  */
 function UserInfo() {
     const [user, setUser] = useState({});
@@ -26,6 +26,9 @@ function UserInfo() {
             userFormApi.current.validate().then((res) => {
                 console.log(res)
                 http.post('/user/update', res).then((res) => {
+                    if(res.email===user.email){
+                        res.email=null;
+                    }
                     Toast.success({ content: "修改成功", showClose: false });
                     getUserData();
                     setDisabled(true);
@@ -106,7 +109,7 @@ function UserInfo() {
                         { required: false },
                         { min: 10, max: 15, message: '密码需要10-15个字符' }
                     ]}
-                    disabled={disabled} labelPosition='inset' className='UserInput' mode='password' placeholder='修改邮箱和密码将会重新登录' field='password' label='密码' />
+                    disabled={disabled} labelPosition='inset' className='UserInput' mode='password' field='password' label='密码' />
                 <div className='UserInput'>
                     <Button className='UserButton' onClick={updateInfo} theme='solid' type='primary' htmlType='submit' size='large'>
                         {disabled ? '修改信息' : '确认'}

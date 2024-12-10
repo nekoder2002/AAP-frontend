@@ -5,7 +5,7 @@ import TypeWriter from "@/components/TypeWriter";
 import { useEffect, useState } from "react";
 import robotIcon from '@/assets/robot.png'
 
-function ChatGroup({ chatRecord, userName, robotName, onFinish, onButtonClick, mode }) {
+function ChatGroup({ chatRecord, robotName, onFinish, onButtonClick, mode }) {
     const [finish, setFinish] = useState(false);
 
     useEffect(() => {
@@ -22,12 +22,12 @@ function ChatGroup({ chatRecord, userName, robotName, onFinish, onButtonClick, m
             <div className="ChatContent">
                 <Card style={{ backgroundColor: 'lightblue', width: '80%' }}>
                     <Card.Meta
-                        title={userName}
+                        title={chatRecord.chatterName}
                         avatar={
                             <Avatar
                                 alt='userName'
                                 size="small"
-                            >{userName?.charAt(0)}</Avatar>
+                            >{chatRecord.chatterName?.charAt(0)}</Avatar>
                         }
                     />
                     <p style={{ fontSize: 15 }}>

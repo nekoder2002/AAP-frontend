@@ -145,7 +145,7 @@ function Paper() {
                             dataURL={`/chat/paper_list?paper_id=${params.id}`}
                             questionURL={`/paper/questions?paper_id=${params.id}`}
                             chatURL='/chat/paper'
-                            height={winHeight - 110} userName={userStore.user.name} robotName='论文小助手'></Chat>
+                            height={winHeight - 110} userName={userStore.user.name}  robotName='论文小助手'></Chat>
                     </TabPane>
                     <TabPane tab="笔记" itemKey="2">
                         <div style={{ height: winHeight - 110, overflowX: 'auto', overflowY: 'auto' }}>

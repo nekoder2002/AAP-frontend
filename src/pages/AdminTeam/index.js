@@ -19,7 +19,7 @@ const DAY = 24 * 60 * 60 * 1000;
 /**
  * 个人知识库页面
  */
-function Team() {
+function AdminTeam() {
     //跳转实例对象
     const navigate = useNavigate();
     //获取个人信息
@@ -30,6 +30,8 @@ function Team() {
     const [isAdmin, setIsAdmin] = useState(false);
     //表格加载状态
     const [loading, setLoading] = useState(true);
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     //编辑弹窗可视
     const [editVisible, setEditVisible] = useState(false);
     //加入弹窗可视
@@ -39,10 +41,87 @@ function Team() {
     //表单api
     const teamFormApi = useRef();
     const codeFormApi = useRef();
+    const searchFormApi = useRef();
     //总共页数
     const [total, setTotal] = useState(0);
     //选择的表单
     const [delIds, setDelIds] = useState([]);
+
+    // 设置表格列
+    const columns = [
+        {
+            title: '团队名称',
+            dataIndex: 'name',
+            render: (text, record, index) => {
+                return (
+                    <div>
+                        <Avatar size="small" shape="square" src={teamIcon} style={{ marginRight: 12 }}></Avatar>
+                        {text}
+                    </div>
+                );
+            },
+        },
+        {
+            title: '创建者',
+            dataIndex: 'adminName',
+            render: (text, record, index) => {
+                return (
+                    <>
+                        <Avatar size="small" color='light-blue' style={{ margin: 4 }}>{text?.charAt(0)}</Avatar>{text}
+                    </>
+                );
+            }
+        },
+        {
+            title: '备注',
+            dataIndex: 'information',
+            render: (text, record, index) => {
+                return (
+                    <Text
+                        ellipsis={{
+                            showTooltip: {
+                                opts: { content: text }
+                            },
+                            pos: 'middle'
+                        }}
+                        style={{ width: 150, wordBreak: 'break-word' }}
+                    >
+                        {text}
+                    </Text>
+                );
+            }
+        },
+        {
+            title: '创建日期',
+            dataIndex: 'buildTime',
+            render: value => {
+                return dateFns.format(new Date(value), 'yyyy-MM-dd');
+            },
+        },
+        {
+            title: '操作',
+            dataIndex: 'op',
+            render: (text, record, index) => {
+                return (
+                    <div style={{ margin: '12px 0', display: 'flex', justifyContent: 'flex-start' }}>
+                        <Space>
+                            <Button theme='solid' onClick={() => navigate(`/teaminfo/${record.id}`)}>查看</Button>
+                            {record.userRight === 1 && <Button onClick={() => showEditDialog(record)}>编辑</Button>}
+                            {record.userRight === 1 &&
+                                <Popconfirm
+                                    okType='danger'
+                                    title="确定是否解散"
+                                    content="此修改将不可逆"
+                                    onConfirm={() => deleteData(record.id)}
+                                >
+                                    <Button type="danger" theme='solid'>删除</Button>
+                                </Popconfirm>}
+                        </Space>
+                    </div>
+                );
+            },
+        },
+    ];
 
     //处理页面变化
     const handlePageChange = page => {
@@ -63,9 +142,6 @@ function Team() {
     const showEditDialog = (team) => {
         setTeam(team);
         setEditVisible(true);
-    };
-    const showAddDialog = () => {
-        setAddVisible(true);
     };
     useEffect(() => {
         if (editVisible === true) {
@@ -161,10 +237,35 @@ function Team() {
         })
     }
 
+
+    //批量删除数据
+    const deleteMultData = (ids) => {
+        http.request({
+            url: '/team/multdel',
+            method: 'delete',
+            data: ids
+        }).then((res) => {
+            Toast.success({ content: "删除团队成功", showClose: false });
+            if (dataSource.length - ids.length === 0 && pagination.currentPage > 1) {
+                getData(pagination.currentPage - 1, pagination.pageSize);
+            } else {
+                getData(pagination.currentPage, pagination.pageSize);
+            }
+            setDelIds([]);
+        }).catch(e => {
+            console.log(e);
+            if (e?.code === 20030) {
+                Toast.error({ content: "删除团队失败", showClose: false });
+            } else {
+                Toast.error({ content: e, showClose: false });
+            }
+        })
+    }
+
     //获取数据
     const getData = (current, size) => {
         setLoading(true);
-        http.get(`/team/query?current=${current}&size=${size}&is_admin=${isAdmin}`).then((res) => {
+        http.post(`/team/list`, { current, size, name, email, valid: true }).then((res) => {
             setData(res.data.teams.records);
             setTotal(res.data.teams.total);
         }).catch(e => {
@@ -178,9 +279,23 @@ function Team() {
         })
     };
 
+    const handleSubmit = (values) => {
+        if (values.name) {
+            setName(values.name);
+        } else {
+            setName('')
+        }
+        if (values.email) {
+            setEmail(values.email);
+        } else {
+            setEmail('')
+        }
+    };
+
+
     useEffect(() => {
         getData(pagination.currentPage, pagination.pageSize);
-    }, [pagination]);
+    }, [pagination, email, name]);
 
     useEffect(() => {
         setPagination({
@@ -188,6 +303,13 @@ function Team() {
             currentPage: 1
         })
     }, [isAdmin])
+
+    const rowSelection = {
+        selectedRowKeys: delIds,
+        onChange: (selectedRowKeys, selectedRows) => {
+            setDelIds(selectedRowKeys);
+        },
+    };
 
     const style = {
         border: '1px solid var(--semi-color-border)',
@@ -259,106 +381,41 @@ function Team() {
                         className='TeamInput' field='invitationCode' label='团队邀请码' />
                 </Form>
             </Modal>
-            <div>
+            <div className='ValidTable'>
                 <Space className='ButtonArea'>
-                    <Button type="primary" theme='solid' onClick={showAddDialog}>加入</Button>
-                    <Button type="primary" onClick={() => showEditDialog(null)}>创建我的团队</Button>
-                    <Switch defaultChecked={isAdmin} onChange={(v, e) => setIsAdmin(v)} aria-label="a switch for semi demo"></Switch>只看我管理的
+                    <Form onSubmit={values => handleSubmit(values)} className='LogForm' getFormApi={formApi => searchFormApi.current = formApi}>
+                        <Form.Input
+                            trigger='blur'
+                            field='name' label='团队名' />
+                        <Form.Input
+                            trigger='blur'
+                            field='email' label='团队管理员email' />
+                        <Space>
+                            <Button htmlType='submit'>查询</Button>
+                            <Popconfirm
+                                disabled={delIds.length === 0}
+                                okType='danger'
+                                title="确定是否删除"
+                                content="此修改将不可逆"
+                                onConfirm={() => deleteMultData(delIds)}
+                            >
+                                <Button type="danger" theme='solid' disabled={delIds.length === 0}>批量删除</Button>
+                            </Popconfirm>
+                        </Space>
+                    </Form>
                 </Space>
-                <div className='TeamList'>
-                    <List
-                        loading={loading}
-                        emptyContent={
-                            <Empty
-                                image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
-                                darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
-                                description={'暂无内容，请添加'}
-                            />
-                        }
-                        grid={{
-                            gutter: 15,
-                            xs: 24,
-                            sm: 24,
-                            md: 24,
-                            lg: 12,
-                            xl: 8,
-                            xxl: 8,
-                        }}
-                        dataSource={dataSource}
-                        renderItem={item => (
-                            <List.Item style={style}>
-                                <div>
-                                    <div style={{ display: 'flex' }}>
-                                        <Avatar size="small" style={{ margin: 4 }} src={teamIcon}></Avatar>
-                                        <Title ellipsis={{ showTooltip: true }} style={{ fontSize: 20, width: '80%', marginLeft: 10 }}>
-                                            {item.name}
-                                        </Title>
-                                    </div>
-                                    <Descriptions
-                                        size="small"
-                                        row
-                                        data={[
-                                            {
-                                                key: '创建者',
-                                                value:
-                                                    <div style={{ display: 'flex' }}>
-                                                        <Avatar
-                                                            size="small" color={item.adminId === userStore.user.id ? 'green' : 'light-blue'}>{item.adminName?.charAt(0)}</Avatar>                                                         <Text ellipsis={{ showTooltip: true }} style={{ fontSize: 15, width: 100, marginLeft: 5 }}>
-                                                            {item.adminName}
-                                                        </Text>
-                                                    </div>
-
-                                            },
-                                            {
-                                                key: '创建日期',
-                                                value:
-                                                    dateFns.format(new Date(item.buildTime), 'yyyy-MM-dd')
-
-                                            },
-                                            {
-                                                key: '我的权限',
-                                                value: () => {
-                                                    if (item.userRight === 1) {
-                                                        return <Tag color='green'>创建者</Tag>;
-                                                    } else if (item.userRight === 2) {
-                                                        return <Tag color='blue'>管理员</Tag>;
-                                                    } else {
-                                                        return <Tag color='light-blue'>成员</Tag>;
-                                                    }
-                                                }
-                                            }
-                                        ]}
-                                    />
-                                    <div style={{ margin: '12px 0', display: 'flex', justifyContent: 'flex-start' }}>
-                                        {item.valid ? <ButtonGroup theme="borderless" style={{ marginTop: 8 }}>
-                                            <Button onClick={() => navigate(`/teaminfo/${item.id}`)}>查看</Button>
-                                            {item.userRight === 1 && <Button onClick={() => showEditDialog(item)}>编辑</Button>}
-                                            {item.userRight === 1 &&
-                                                <Popconfirm
-                                                    okType='danger'
-                                                    title="确定是否解散"
-                                                    content="此修改将不可逆"
-                                                    onConfirm={() => deleteData(item.id)}
-                                                >
-                                                    <Button type="danger" theme='borderless'>解散</Button>
-                                                </Popconfirm>}
-                                        </ButtonGroup> : <span style={{ margin: 10, fontSize: 20 }}>审核中...</span>}
-                                    </div>
-                                </div>
-                            </List.Item>
-                        )}
-                    />
-                    <Pagination
-                        showTotal
-                        total={total}
-                        currentPage={pagination.currentPage}
-                        pageSize={pagination.pageSize}
-                        onPageChange={handlePageChange}>
-                    </Pagination>
-                </div>
+                <Table className='ShowTable' loading={loading} rowKey="id"
+                    empty={
+                        <Empty
+                            image={<IllustrationNoContent style={{ width: 150, height: 150 }} />}
+                            darkModeImage={<IllustrationNoContentDark style={{ width: 150, height: 150 }} />}
+                            description={'暂无待审核内容'}
+                        />
+                    }
+                    columns={columns} dataSource={dataSource} rowSelection={rowSelection} pagination={{ ...pagination, total: total }} />
             </div>
         </div>
     );
 }
 
-export default observer(Team);
+export default observer(AdminTeam);
