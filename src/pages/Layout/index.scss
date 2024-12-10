@@ -1,0 +1,15 @@
+$top_height: 50;
+
+// 上方菜单高度
+.TopMenu {
+    height: $top_height + px;
+}
+
+// logo
+.NavLogo{
+    height: $top_height - 10 + px;
+}
+
+:export {
+    topHeight: $top_height;
+}

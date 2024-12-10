@@ -14,7 +14,6 @@ const config = {
 const configContext = createContext(config);
 const useConfig = () => useContext(configContext);
 
-
 /**
  * 其他配置
  */

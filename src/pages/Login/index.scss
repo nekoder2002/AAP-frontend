@@ -1,0 +1,75 @@
+// 基础间隔
+$base_space: 12;
+// 基础宽度
+$base_width: 300;
+// 窗口宽度
+$win_width: 420;
+// 窗口高度
+$win_height: 430;
+//按钮宽度
+$btn_width: 80;
+//按钮间距
+$btn_space: 50;
+//footer高度
+$footer_height: 20;
+
+// 背景
+.Sign {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: center/cover url('~@/assets/sign_bk.jpg');
+}
+
+// 窗口卡片
+.SignCard {
+    width: $win_width + px;
+    height: $win_height + $footer_height + px;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+// 表单
+.SignForm {
+    display: block;
+    width: $base_width + px;
+    margin: 0 auto;
+}
+
+// 输入框
+.SignInput {
+    width: $base_width + px;
+    margin: $base_space + px 0;
+}
+
+// Logo
+.SignLogo {
+    display: block;
+    width: $base_width + px;
+    margin: $base_space + px auto;
+}
+
+// 按钮区
+.SignButton {
+    width: $btn_width + px;
+
+}
+
+.SignSpace {
+    width: (2 * $btn_width + $btn_space) + px;
+    margin: 0 auto;
+}
+
+
+.semi-modal-footer{
+    display: flex;
+    justify-content: center;
+}
+
+:export {
+    buttonSpace: $btn_space;
+}
